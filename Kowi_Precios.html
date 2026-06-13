@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>KOWI · Precios</title>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --brand: #1a237e;
+    --brand2: #283593;
+    --accent: #e65100;
+    --green: #1b5e20;
+    --green-bg: #e8f5e9;
+    --amber: #856404;
+    --amber-bg: #fff3cd;
+    --red: #c62828;
+    --red-bg: #ffebee;
+    --text: #1a1a1a;
+    --sub: #546e7a;
+    --border: #e0e0e0;
+    --pill-bg: #e8eaf6;
+    --pill-txt: #283593;
+    --pill-on: #1a237e;
+    --pill-on-txt: #fff;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+    --r: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Header ── */
+  .header { background: var(--brand); color: #fff; padding: 16px 16px 12px;
+             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+  .logo span { color: #ffb74d; }
+  .count-badge { background: rgba(255,255,255,.15); border-radius: 20px;
+                 padding: 3px 10px; font-size: 12px; }
+
+  /* ── Search ── */
+  .search-wrap { position: relative; }
+  .search { width: 100%; padding: 10px 14px 10px 38px; border: none; border-radius: 10px;
+            background: rgba(255,255,255,.12); color: #fff; font-size: 15px; outline: none; }
+  .search::placeholder { color: rgba(255,255,255,.6); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+                 font-size: 15px; opacity: .7; pointer-events: none; }
+
+  /* ── Filters ── */
+  .filters-wrap { padding: 10px 16px; overflow-x: auto; display: flex; gap: 8px;
+                  scrollbar-width: none; background: #fff;
+                  border-bottom: 1px solid var(--border); }
+  .filters-wrap::-webkit-scrollbar { display: none; }
+  .pill { white-space: nowrap; padding: 6px 14px; border-radius: 20px;
+          background: var(--pill-bg); color: var(--pill-txt);
+          font-size: 12px; font-weight: 500; cursor: pointer; border: none;
+          transition: all .15s; }
+  .pill.on { background: var(--pill-on); color: var(--pill-on-txt); }
+
+  /* ── Sort bar ── */
+  .sort-bar { padding: 8px 16px; display: flex; align-items: center; gap: 8px;
+              background: var(--bg); font-size: 12px; color: var(--sub); }
+  .sort-bar select { border: 1px solid var(--border); border-radius: 8px;
+                     padding: 4px 8px; font-size: 12px; background: #fff;
+                     color: var(--text); outline: none; }
+  .res-count { margin-left: auto; font-weight: 500; }
+
+  /* ── Grid ── */
+  .grid { padding: 4px 12px 80px; display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+
+  /* ── Card ── */
+  .card { background: var(--card); border-radius: var(--r);
+          box-shadow: var(--shadow); overflow: hidden;
+          cursor: pointer; transition: transform .1s; active: scale(.97); }
+  .card:active { transform: scale(.97); }
+  .card-body { padding: 12px; }
+  .card-subfam { font-size: 10px; font-weight: 600; color: var(--sub);
+                 text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; line-height: 1.3;
+               color: var(--text); margin-bottom: 8px; min-height: 34px; }
+  .card-price { font-size: 19px; font-weight: 700; color: var(--accent); }
+  .card-price-sub { font-size: 11px; color: var(--sub); margin-top: 1px; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between;
+                 padding: 7px 12px; background: #fafafa;
+                 border-top: 1px solid var(--border); }
+  .prov-tag { font-size: 10px; font-weight: 600; padding: 2px 7px;
+              border-radius: 10px; background: var(--pill-bg); color: var(--pill-txt); }
+  .prov-tag.kowi { background: #fff3e0; color: #e65100; }
+  .stock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stock-dot.ok { background: #4caf50; }
+  .stock-dot.low { background: #ff9800; }
+  .stock-dot.out { background: #ef5350; }
+
+  /* ── Modal ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45);
+             z-index: 200; display: none; align-items: flex-end; }
+  .overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; width: 100%;
+           padding: 0 0 32px; max-height: 85vh; overflow-y: auto; }
+  .modal-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px;
+                  margin: 10px auto 16px; }
+  .modal-header { padding: 0 20px 16px; border-bottom: 1px solid var(--border); }
+  .modal-subfam { font-size: 11px; font-weight: 600; color: var(--sub);
+                  text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+  .modal-name { font-size: 18px; font-weight: 700; line-height: 1.3; }
+  .modal-body { padding: 16px 20px; }
+  .price-block { background: #fff8f5; border: 1px solid #ffe0cc;
+                 border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  .price-label { font-size: 11px; font-weight: 600; color: var(--sub);
+                 text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+  .price-val { font-size: 32px; font-weight: 800; color: var(--accent); }
+  .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .info-block { background: var(--bg); border-radius: 10px; padding: 12px; }
+  .info-label { font-size: 10px; font-weight: 600; color: var(--sub);
+                text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+  .info-val { font-size: 14px; font-weight: 600; }
+  .stock-block { border-radius: 10px; padding: 12px; text-align: center; }
+  .stock-block.ok { background: var(--green-bg); }
+  .stock-block.low { background: var(--amber-bg); }
+  .stock-block.out { background: var(--red-bg); }
+  .stock-block .info-val { font-size: 20px; font-weight: 800; }
+  .stock-block.ok .info-val { color: var(--green); }
+  .stock-block.low .info-val { color: var(--amber); }
+  .stock-block.out .info-val { color: var(--red); }
+  .cod-row { display: flex; align-items: center; justify-content: space-between;
+             background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+  .cod-txt { font-family: monospace; font-size: 12px; color: var(--sub); }
+  .copy-btn { font-size: 11px; background: var(--brand); color: #fff;
+              border: none; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+
+  /* ── FAB ── */
+  .fab { position: fixed; bottom: 20px; right: 16px; width: 52px; height: 52px;
+         border-radius: 50%; background: var(--brand); color: #fff; font-size: 22px;
+         border: none; box-shadow: 0 4px 14px rgba(0,0,0,.25); cursor: pointer;
+         display: flex; align-items: center; justify-content: center; z-index: 99; }
+
+  /* ── Empty ── */
+  .empty { text-align: center; padding: 60px 20px; color: var(--sub); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">KOWI <span>·</span> Precios</div>
+    <div class="count-badge" id="count-badge">199 productos</div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search" id="search" type="search" placeholder="Buscar producto..." autocomplete="off">
+  </div>
+</div>
+
+<div class="filters-wrap" id="filters">
+  <button class="pill on" onclick="setFilter('')" data-f="">Todo</button>
+  <button class="pill" onclick="setFilter('KOWI')" data-f="KOWI">✨ KOWI</button>
+  <button class="pill" onclick="setFilter('ACCESORIOS BEBE')" data-f="ACCESORIOS BEBE">Accesorios bebé</button>
+  <button class="pill" onclick="setFilter('PORTACHUPETE')" data-f="PORTACHUPETE">Portachupete</button>
+  <button class="pill" onclick="setFilter('JUGUETES')" data-f="JUGUETES">Juguetes</button>
+  <button class="pill" onclick="setFilter('ROPA')" data-f="ROPA">Ropa</button>
+  <button class="pill" onclick="setFilter('stock')" data-f="stock">📦 Con stock</button>
+</div>
+
+<div class="sort-bar">
+  <label for="sort" style="font-size:12px">Ordenar:</label>
+  <select id="sort" onchange="render()">
+    <option value="nombre">A → Z</option>
+    <option value="precio_asc">Precio ↑</option>
+    <option value="precio_desc">Precio ↓</option>
+    <option value="stock">Stock disponible</option>
+  </select>
+  <span class="res-count" id="res-count"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="empty" id="empty" style="display:none">
+  <div class="empty-icon">🔎</div>
+  <div>No se encontraron productos</div>
+</div>
+
+<!-- Modal detalle -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-subfam" id="m-subfam"></div>
+      <div class="modal-name" id="m-name"></div>
+    </div>
+    <div class="modal-body">
+      <div class="price-block">
+        <div class="price-label">Precio Transferencia / Efectivo</div>
+        <div class="price-val" id="m-price"></div>
+      </div>
+      <div class="price-grid">
+        <div class="info-block">
+          <div class="info-label">Precio Efectivo</div>
+          <div class="info-val" id="m-efect"></div>
+        </div>
+        <div class="stock-block" id="m-stock-block">
+          <div class="info-label">Stock</div>
+          <div class="info-val" id="m-stock"></div>
+        </div>
+      </div>
+      <div class="price-grid">
+        <div class="info-block">
+          <div class="info-label">Familia</div>
+          <div class="info-val" id="m-fam"></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Proveedor</div>
+          <div class="info-val" id="m-prov"></div>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="cod-row">
+        <span class="cod-txt" id="m-cod"></span>
+        <button class="copy-btn" onclick="copyCod()">Copiar código</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="document.getElementById('search').focus()">🔍</button>
+
+<script>
+const PRODUCTS = [{"cod": "0200010000500016", "nombre": "ESTRELLA - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16400, "precio_efectivo": 19482, "stock": 0}, {"cod": "0200010000500017", "nombre": "LIA - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21840, "precio_efectivo": 25037, "stock": 0}, {"cod": "0200010000500018", "nombre": "NUBE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21040, "precio_efectivo": 24005, "stock": 0}, {"cod": "0200010000500019", "nombre": "TAO - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21040, "precio_efectivo": 24229, "stock": 0}, {"cod": "0200010000500020", "nombre": "TAO SIN DIJE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18960, "precio_efectivo": 21939, "stock": 0}, {"cod": "0200010000500021", "nombre": "LIA SIN DIJE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20240, "precio_efectivo": 23183, "stock": 0}, {"cod": "0200010000500022", "nombre": "BAMBU - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 24000, "precio_efectivo": 27666, "stock": 0}, {"cod": "0200010000500023", "nombre": "COCO - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 26000, "precio_efectivo": 29739, "stock": 0}, {"cod": "0200010000500024", "nombre": "MIU - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21520, "precio_efectivo": 24319, "stock": 0}, {"cod": "0200010000500025", "nombre": "NATURE - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25600, "precio_efectivo": 29530, "stock": 0}, {"cod": "0200010000500026", "nombre": "NATURE FREE - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 29360, "precio_efectivo": 34233, "stock": 0}, {"cod": "0200010000500027", "nombre": "NATURE FREE SHORT - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27200, "precio_efectivo": 32176, "stock": 0}, {"cod": "0200010000500028", "nombre": "NATURE SILICONA - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27760, "precio_efectivo": 31723, "stock": 0}, {"cod": "0200010000500029", "nombre": "MARGOT NAME - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27760, "precio_efectivo": 32698, "stock": 0}, {"cod": "0200010000500030", "nombre": "MARGOT WHITE - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 33200, "precio_efectivo": 39085, "stock": 0}, {"cod": "0200010000500031", "nombre": "MARGOT WOOD - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 30400, "precio_efectivo": 36255, "stock": 0}, {"cod": "0200010000500032", "nombre": "ZURI - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25440, "precio_efectivo": 30331, "stock": 0}, {"cod": "0200010000500033", "nombre": "ZURI NAME WOOD - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 24800, "precio_efectivo": 28929, "stock": 0}, {"cod": "0200010000500034", "nombre": "ZURI NAME SILICONA - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27200, "precio_efectivo": 31122, "stock": 0}, {"cod": "0200010000500035", "nombre": "ZURI NEW BORN - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 22000, "precio_efectivo": 31593, "stock": 0}, {"cod": "0200010000500036", "nombre": "BENI - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 21884, "stock": 0}, {"cod": "0200010000500037", "nombre": "ONA - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16320, "precio_efectivo": 19439, "stock": 0}, {"cod": "0200010000500038", "nombre": "NOA - MODELO XL PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19120, "precio_efectivo": 22046, "stock": 0}, {"cod": "0200010000500039", "nombre": "RIO - MODELO XL PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20720, "precio_efectivo": 23900, "stock": 0}, {"cod": "0200010000500040", "nombre": "KOWI RAINBOW - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19600, "precio_efectivo": 23521, "stock": 0}, {"cod": "0200010000900001", "nombre": "BRUNA CHUPETE DE FRUTA DULCE DE LECHE 6/12 MESES", "familia": "ACCESORIOS BEBE", "subfam": "CHUPETES DE FRUTA", "proveedor": "BRUNA", "precio": 20000, "precio_efectivo": 18587, "stock": 0}, {"cod": "0200010000800001", "nombre": "BRUNA GUARDACHUPETE DE SILICONA LEON ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 15040, "precio_efectivo": 11991, "stock": 1}, {"cod": "0200010000800008", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO AZUL OSCURO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 10606, "stock": 0}, {"cod": "0200010001000004", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS ROSA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 11600, "precio_efectivo": 11145, "stock": 1}, {"cod": "0200010000700001", "nombre": "PURO BEBE TRAPITO DE APEGO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 2}, {"cod": "0200010000700002", "nombre": "PURO BEBE TRAPITO DE APEGO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 0}, {"cod": "0200010000700003", "nombre": "PURO BEBE TRAPITO DE APEGO AZUL MARINERO", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 2}, {"cod": "0200010000200004", "nombre": "PURO BEBE CONEJO AMIGURUMI NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 21200, "precio_efectivo": 20275, "stock": 2}, {"cod": "0200010000600004", "nombre": "PURO BEBE SONAJERO ARO CHICO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 2}, {"cod": "0200010000600005", "nombre": "PURO BEBE SONAJERO ARO GRANDE ROSA", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 1}, {"cod": "0200010000600006", "nombre": "PURO BEBE SONAJERO ARO GRANDE CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 0}, {"cod": "0200010000200001", "nombre": "PURO BEBE HIPO AMIGURUMI GRIS", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 20000, "precio_efectivo": 18797, "stock": 0}, {"cod": "0200010000600001", "nombre": "PURO BEBE SONAJERO PIPO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": -3}, {"cod": "0200010000600002", "nombre": "PURO BEBE SONAJERO PIPO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 0}, {"cod": "0200010000600003", "nombre": "PURO BEBE SONAJERO PIPO CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 2}, {"cod": "0200010000200003", "nombre": "PURO BEBE PERRO AMIGURIMI MARRON", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 20000, "precio_efectivo": 18797, "stock": 0}, {"cod": "0200010000300001", "nombre": "CLARA VALENCIA BABERO BERNARDA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": -1}, {"cod": "0200010000300002", "nombre": "CLARA VALENCIA BABERO BERNARDA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": 0}, {"cod": "0200010000300003", "nombre": "CLARA VALENCIA BABERO BERNARDA TISA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": 0}, {"cod": "0200010000300004", "nombre": "CLARA VALENCIA BABERO JAZMIN ROSA CAMPO DE FLORES", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12720, "precio_efectivo": 11066, "stock": 0}, {"cod": "0200010000300005", "nombre": "CLARA VALENCIA BABERO NATURAL CON BARQUITO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12720, "precio_efectivo": 11066, "stock": 0}, {"cod": "0200010000300006", "nombre": "CLARA VALENCIA BABERO BANDANA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 0}, {"cod": "0200010000300007", "nombre": "CLARA VALENCIA BABERO BANDANA AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": -6}, {"cod": "0200010000300008", "nombre": "CLARA VALENCIA BABERO BANDANA CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 2}, {"cod": "0200010000300009", "nombre": "CLARA VALENCIA BABERO BANDANA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 0}, {"cod": "0200010000300010", "nombre": "CLARA VALENCIA BABERO CLARA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9360, "precio_efectivo": 8649, "stock": 0}, {"cod": "0200010000300011", "nombre": "CLARA VALENCIA BABERO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9360, "precio_efectivo": 8649, "stock": 1}, {"cod": "0200010000300012", "nombre": "CLARA VALENCIA BABERO MARÍA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": -3}, {"cod": "0200010000300013", "nombre": "CLARA VALENCIA BABERO MARÍA VERDE MINT", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": 0}, {"cod": "0200010000300014", "nombre": "CLARA VALENCIA BABERO MARÍA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": 1}, {"cod": "0200010000300015", "nombre": "CLARA VALENCIA BABERO CARLITO ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7762, "stock": -1}, {"cod": "0200010000300016", "nombre": "CLARA VALENCIA BABERO CARLITO CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7762, "stock": 1}, {"cod": "0200010000300017", "nombre": "CLARA VALENCIA BABERO CARMELA SIN PUNTILLA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7540, "stock": 1}, {"cod": "0200010000300018", "nombre": "CLARA VALENCIA BABERO KIT NEW BORN", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 20000, "precio_efectivo": 19958, "stock": -1}, {"cod": "0200010000500002", "nombre": "CLARA VALENCIA PORTACHUPETE NINA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6653, "stock": 0}, {"cod": "0200010000500003", "nombre": "CLARA VALENCIA PORTACHUPETE NINA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6653, "stock": -1}, {"cod": "0200010000500004", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 5846, "stock": 1}, {"cod": "0200010000500005", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS AZUL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 5846, "stock": 1}, {"cod": "0200010000400001", "nombre": "CLARA VALENCIA BABITAS  ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000400002", "nombre": "CLARA VALENCIA BABITAS  NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": -1}, {"cod": "0200010000400003", "nombre": "CLARA VALENCIA BABITAS  ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000400004", "nombre": "CLARA VALENCIA BABITAS  CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 1}, {"cod": "0200010000400005", "nombre": "CLARA VALENCIA BABITAS  AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000300019", "nombre": "CLARA VALENCIA BABERO BANDA ESTAMPADO RAYAS AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 5846, "stock": 2}, {"cod": "0200010000300020", "nombre": "CLARA VALENCIA BABERO BANDA ESTAMPADO RAYAS CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 5846, "stock": 0}, {"cod": "0200010000500006", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6431, "stock": -3}, {"cod": "0200010000500007", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6431, "stock": 0}, {"cod": "0200010000400006", "nombre": "CLARA VALENCIA BABITA BORDADA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5600, "precio_efectivo": 7196, "stock": 0}, {"cod": "0200010000400007", "nombre": "CLARA VALENCIA BABITA ESTAMPADA ALGODON RAYAS", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5200, "precio_efectivo": 6830, "stock": 1}, {"cod": "0200010000300021", "nombre": "CLARA VALENCIA BABERO CANDY ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9600, "precio_efectivo": 8870, "stock": -2}, {"cod": "0200010000300022", "nombre": "CLARA VALENCIA BABERO CANDY ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9600, "precio_efectivo": 8870, "stock": 2}, {"cod": "0200010000500008", "nombre": "CLARA VALENCIA PORTACHUPETE NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000500009", "nombre": "CLARA VALENCIA PORTACHUPETE ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000500010", "nombre": "CLARA VALENCIA PORTACHUPETE CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 2}, {"cod": "0200010000500011", "nombre": "CLARA VALENCIA PORTACHUPETE ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0}, {"cod": "0200010000100001", "nombre": "CLARA VALENCIA MOÑO ANGELES ROSA ARENA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "ACCESORIOS PARA EL PELO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 11088, "stock": 0}, {"cod": "0200010000800003", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE AVENA", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0}, {"cod": "0200010001000001", "nombre": "BRUNA CORREA DE AGARRE LISA BEIGE", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 7056, "stock": 0}, {"cod": "0200010001000010", "nombre": "LIFCHE CINTAS DE SILICONA AZUL SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": -4}, {"cod": "0200010000500001", "nombre": "PURO BEBE PORTACHUPETE CROCHET", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "PURO BEBE", "precio": 10000, "precio_efectivo": 9757, "stock": 0}, {"cod": "0200010000200002", "nombre": "PURO BEBE OSO BONI AMIGURUMI NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 16000, "precio_efectivo": 15523, "stock": 0}, {"cod": "0200010000800002", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE BEIGE", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0}, {"cod": "0200010000800004", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE AZUL PÁLIDO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0}, {"cod": "0200010000800005", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE VERDE MUSGO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0}, {"cod": "0200010000800006", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE ROSA VIEJO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0}, {"cod": "0200010001000002", "nombre": "BRUNA CORREA DE SILICONA DINOSAURIO GRIS", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 6854, "stock": 0}, {"cod": "0200010001000003", "nombre": "BRUNA CORREA DE SILICONA DINOSAURIO VERDE MUSGO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 6854, "stock": 0}, {"cod": "0200010000500012", "nombre": "BRUNA PORTACHUPETE DE SILICONA DINO", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -1}, {"cod": "0200010000500013", "nombre": "BRUNA PORTACHUPETE DE SILICONA JIRAFA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -3}, {"cod": "0200010000500014", "nombre": "BRUNA PORTACHUPETE DE SILICONA ARCOIRIS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -1}, {"cod": "0200010000500015", "nombre": "BRUNA PORTACHUPETE DE SILICONA FLORES", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -3}, {"cod": "0200010000800007", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO AVENA CLARO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": -4}, {"cod": "0200010000800009", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO DORADO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010000800010", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO GRIS CLARO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": -1}, {"cod": "0200010000800011", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": 0}, {"cod": "0200010000800012", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": 0}, {"cod": "0200010001000005", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS AZUL PASTEL", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010001000006", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS CREMA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010001000007", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS DURAZNO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010001000008", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS GRIS AZULADO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010001000009", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS VERDE", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0}, {"cod": "0200010001000011", "nombre": "LIFCHE CINTAS DE SILICONA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": -1}, {"cod": "0200010001000012", "nombre": "LIFCHE CINTAS DE SILICONA CREMA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": 0}, {"cod": "0200010001000013", "nombre": "LIFCHE CINTAS DE SILICONA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": 0}, {"cod": "0200010001000014", "nombre": "LIFCHE CINTAS DE SILICONA VACA ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0}, {"cod": "0200010001000015", "nombre": "LIFCHE CINTAS DE SILICONA VACA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0}, {"cod": "0200010001000016", "nombre": "LIFCHE CINTAS DE SILICONA ZORRO VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0}, {"cod": "0200020001100001", "nombre": "LIFCHE GANCHO COCODRILO NEGRO", "familia": "ARMADO PRODUCCIÓN", "subfam": "GANCHO COCHE", "proveedor": "LIFCHE", "precio": 4000, "precio_efectivo": 4020, "stock": 0}, {"cod": "0200030000100001", "nombre": "KOWI LLAVERO 1", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 12000, "precio_efectivo": 11656, "stock": 0}, {"cod": "0200030000100002", "nombre": "KOWI LLAVERO 2", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 14400, "precio_efectivo": 14823, "stock": 0}, {"cod": "0200030000100003", "nombre": "KOWI LLAVERO 3", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 16000, "precio_efectivo": 18250, "stock": 0}, {"cod": "0200010000500041", "nombre": "KOWI ROSE FLOWERS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 17600, "precio_efectivo": 18905, "stock": 0}, {"cod": "0200010000800013", "nombre": "BRUNA GUARDACHUPETE DE SILICONA LEON ROSA", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 15040, "precio_efectivo": 11991, "stock": 0}, {"cod": "0200030000500001", "nombre": "KOWI 15", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 15200, "precio_efectivo": 19993, "stock": 0}, {"cod": "0200030000500002", "nombre": "KOWI 16", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 15440, "precio_efectivo": 16667, "stock": 0}, {"cod": "0200030000500003", "nombre": "KOWI 16 LABRADAS", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 18631, "stock": 0}, {"cod": "0200030000500004", "nombre": "KOWI 17", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16960, "precio_efectivo": 21546, "stock": 0}, {"cod": "0200030000500005", "nombre": "KOWI 18", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18000, "precio_efectivo": 20211, "stock": 0}, {"cod": "0200040000100001", "nombre": "COCO HOUSE CUBO SENSORIAL UNICORNIO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0}, {"cod": "0200040000100002", "nombre": "COCO HOUSE CUBO MONTESORI ZORRO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": -1}, {"cod": "0200040000100003", "nombre": "COCO HOUSE CUBO MONTESORI COHETE", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0}, {"cod": "0200040000100004", "nombre": "COCO HOUSE CUBO MONTESORI OSO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0}, {"cod": "0200040000200001", "nombre": "COCO HOUSE SONAJERO BARRAL FRUTILLA", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -2}, {"cod": "0200040000200002", "nombre": "COCO HOUSE SONAJERO BARRAL PERITA", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -3}, {"cod": "0200040000200003", "nombre": "COCO HOUSE SONAJERO BARRAL TEDDY", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -1}, {"cod": "0200040000300001", "nombre": "COCO HOUSE LIBRO TELA LEON", "familia": "JUGUETES", "subfam": "LIBRO TELA", "proveedor": "COCO HOUSE", "precio": 23200, "precio_efectivo": 21864, "stock": -2}, {"cod": "0200040000300002", "nombre": "COCO HOUSE LIBRO TELA OSO", "familia": "JUGUETES", "subfam": "LIBRO TELA", "proveedor": "COCO HOUSE", "precio": 23200, "precio_efectivo": 21864, "stock": 0}, {"cod": "0200010000500042", "nombre": "KOWI CANDY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20000, "precio_efectivo": 22729, "stock": 0}, {"cod": "0200010000500043", "nombre": "KOWI LUCKY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21600, "precio_efectivo": 24075, "stock": 0}, {"cod": "0200010000500044", "nombre": "KOWI MARGARITAS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 23200, "precio_efectivo": 26232, "stock": 0}, {"cod": "0200010000500045", "nombre": "KOWI PASTELES", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18800, "precio_efectivo": 21715, "stock": 0}, {"cod": "0200010000500046", "nombre": "KOWI PURE BABY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 21872, "stock": 0}, {"cod": "0200010000500047", "nombre": "KOWI PURE BABY NAME", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 22400, "precio_efectivo": 24753, "stock": 0}, {"cod": "0200010000500048", "nombre": "KOWI WHITE AND", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 20910, "stock": 0}, {"cod": "0200010000500049", "nombre": "KOWI WHITE AND FLOWERS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 21723, "stock": 0}, {"cod": "0200010000500050", "nombre": "KOWI PETIT", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25600, "precio_efectivo": 27998, "stock": 0}, {"cod": "0200010001200001", "nombre": "LA JUSTINA BOLSA DE DORMIR T2 GRIS PERLA", "familia": "ACCESORIOS BEBE", "subfam": "BOLSA DE DORMIR", "proveedor": "LA JUSTINA", "precio": 38952, "precio_efectivo": 38952, "stock": -1}, {"cod": "0200010001300001", "nombre": "LA JUSTINA CAMBIADOR PORTATIL ESTAMPADO OSO", "familia": "ACCESORIOS BEBE", "subfam": "CAMBIADOR", "proveedor": "LA JUSTINA", "precio": 27457, "precio_efectivo": 27457, "stock": -1}, {"cod": "0200010001400001", "nombre": "LA JUSTINA COLCHON DE COCHES CON VOLADOS ROSA VINTAGE", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 23627, "precio_efectivo": 23055, "stock": -1}, {"cod": "0200010001400002", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO FLOREADO", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": 0}, {"cod": "0200010001400003", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO DINO", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": -1}, {"cod": "0200010001400004", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO JUNGLA", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": 0}, {"cod": "0200010001400005", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO CHERRY", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": -2}, {"cod": "0200010001500001", "nombre": "LA JUSTINA REDUCTOR", "familia": "ACCESORIOS BEBE", "subfam": "REDUCTOR", "proveedor": "LA JUSTINA", "precio": 30430, "precio_efectivo": 30430, "stock": -1}, {"cod": "0200010001600001", "nombre": "LA JUSTINA MANTAS POLAR SOFT HOJITAS OCRE", "familia": "ACCESORIOS BEBE", "subfam": "MANTAS", "proveedor": "LA JUSTINA", "precio": 20733, "precio_efectivo": 20733, "stock": -1}, {"cod": "0200010001700001", "nombre": "LA JUSTINA PORTAENFANT LISOA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTAENFANT", "proveedor": "LA JUSTINA", "precio": 53710, "precio_efectivo": 53710, "stock": 0}, {"cod": "0200010000300023", "nombre": "LA JUSTINA COMILON SIN VOLADOS ESTAMPADOS LEON", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 11979, "stock": -1}, {"cod": "0200010000300024", "nombre": "LA JUSTINA COMILON CON VOLADOS ESTAMPADOS FLOREADO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 13517, "stock": 0}, {"cod": "0200010000300025", "nombre": "LA JUSTINA COMILION CON VOLADOS LISOS ROSA VINTAGE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 12672, "stock": 0}, {"cod": "0200010000300026", "nombre": "LA JUSTINA COMILON CON VOLADOS ESTAMPADOS MARGARITAS FONDO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 13517, "stock": 0}, {"cod": "0200010001800001", "nombre": "FROMBEIRUT TOALLA EXTRA GRANDE", "familia": "ACCESORIOS BEBE", "subfam": "TOALLAS", "proveedor": "FROMBEIRUT", "precio": 28800, "precio_efectivo": 36854, "stock": 0}, {"cod": "0200010002900001", "nombre": "FROMBEIRUT PINTORCITO", "familia": "ACCESORIOS BEBE", "subfam": "PINTORCITO", "proveedor": "FROMBEIRUT", "precio": 12800, "precio_efectivo": 13622, "stock": -3}, {"cod": "0200010002500001", "nombre": "FROMBEIRUT COBERTOR DE CHOCHE UNIVERSAL", "familia": "ACCESORIOS BEBE", "subfam": "COBERTOR DE CHOCHE", "proveedor": "FROMBEIRUT", "precio": 14400, "precio_efectivo": 15629, "stock": 0}, {"cod": "0200010002800001", "nombre": "FROMBEIRUT MOSQUITERO UNIVERSAL", "familia": "ACCESORIOS BEBE", "subfam": "MOSQUITERO", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8976, "stock": 0}, {"cod": "0200010000300027", "nombre": "FROMBEIRUT BABERO TRANSPARENTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 3600, "precio_efectivo": 3000, "stock": 0}, {"cod": "0200010000300028", "nombre": "FROMBEIRUT BABERO MUSELINA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 5200, "precio_efectivo": 6125, "stock": 0}, {"cod": "0200010001900001", "nombre": "FROMBEIRUT ESQUINERO REDONDO", "familia": "ACCESORIOS BEBE", "subfam": "ESQUINERO", "proveedor": "FROMBEIRUT", "precio": 6400, "precio_efectivo": 7751, "stock": 0}, {"cod": "0200010002000001", "nombre": "FROMBEIRUT TAPA ENCHUFE", "familia": "ACCESORIOS BEBE", "subfam": "TAPA ENCHUFE", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 7855, "stock": 0}, {"cod": "0200010002100001", "nombre": "FROMBEIRUT SET CUBIERTOS COLORES FIBRA DE TRIGO", "familia": "ACCESORIOS BEBE", "subfam": "CUBIERTOS", "proveedor": "FROMBEIRUT", "precio": 4400, "precio_efectivo": 5280, "stock": 0}, {"cod": "0200010002200001", "nombre": "FROMBEIRUT MOLDE DE HELADOS DE SILICONA", "familia": "ACCESORIOS BEBE", "subfam": "MOLDE DE HELADOS", "proveedor": "FROMBEIRUT", "precio": 7040, "precio_efectivo": 8237, "stock": -1}, {"cod": "0200010002300001", "nombre": "FROMBEIRUT PALTOS DE SILICONA OSO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "PLATOS", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 10476, "stock": 0}, {"cod": "0200010002400001", "nombre": "FROMBEIRUT CEPILLO LIMPIA MAMADERAS", "familia": "ACCESORIOS BEBE", "subfam": "CEPILLO MAMADERA", "proveedor": "FROMBEIRUT", "precio": 11600, "precio_efectivo": 10598, "stock": -1}, {"cod": "0200010002600001", "nombre": "FROMBEIRUT CUCHARA DOSIFICADORA MEDICAMENTOS", "familia": "ACCESORIOS BEBE", "subfam": "CUCHARA DOSIFICADORA", "proveedor": "FROMBEIRUT", "precio": 3200, "precio_efectivo": 4013, "stock": 0}, {"cod": "0200010002700001", "nombre": "FROMBEIRUT NECESER CONEJO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "NECESER", "proveedor": "FROMBEIRUT", "precio": 7200, "precio_efectivo": 8448, "stock": 0}, {"cod": "0200010000400008", "nombre": "FROMBEIRUT ALFOMBRA ESTIMULANTE DE AGUA", "familia": "ACCESORIOS BEBE", "subfam": "ALFOMBRA", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 14784, "stock": -1}, {"cod": "0200010001300002", "nombre": "FROMBEIRUT CAMBIADOR PORTATIL CONEJO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "CAMBIADOR", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 13306, "stock": 0}, {"cod": "0200010000300029", "nombre": "FROMBEIRUT BABERO SILICONA LISO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8659, "stock": -3}, {"cod": "0200010002100002", "nombre": "FROMBEIRUT CUIERTOS MINI SILICONA COLORES", "familia": "ACCESORIOS BEBE", "subfam": "CUBIERTOS", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8659, "stock": -3}, {"cod": "0200010000500051", "nombre": "KOWI MADERA 3", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 22213, "stock": 0}, {"cod": "0200010000500052", "nombre": "KOWI MADERA 2", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21120, "precio_efectivo": 24128, "stock": 0}, {"cod": "0200010000500053", "nombre": "KOWI MADERA 1", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18560, "precio_efectivo": 21598, "stock": 0}, {"cod": "0200050000400001", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO PIMA GATITO", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 49401, "precio_efectivo": 39521, "stock": -1}, {"cod": "0200050000400002", "nombre": "OLD BUNCH SET BATITA Y PANTALON PIMA OSO GLOBO", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 34893, "precio_efectivo": 27914, "stock": 0}, {"cod": "0200050000400003", "nombre": "OLD BUNCH SET BATITA Y PANTALON PIMA OSO FLOR", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 34893, "precio_efectivo": 27914, "stock": 0}, {"cod": "0200050000300001", "nombre": "OLD BUNCH BODY MODAL PUNTILLA", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 23380, "precio_efectivo": 18704, "stock": 0}, {"cod": "0200050000300002", "nombre": "OLD BUNCH BODY LIBERTY", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 25600, "precio_efectivo": 20480, "stock": 0}, {"cod": "0200050000400004", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO CONEJITOS", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 45913, "precio_efectivo": 36730, "stock": 0}, {"cod": "0200050000300003", "nombre": "OLD BUNCH BODY MANGA LARGA CON BOLSILLO", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 22313, "precio_efectivo": 17850, "stock": 0}, {"cod": "0200050000300004", "nombre": "OLD BUNCH BODY CONEJITA CON FLOTRES", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 31380, "precio_efectivo": 25104, "stock": 0}, {"cod": "0200050000100001", "nombre": "OLD BUNCH ENETRITO PLUSH", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 42729, "precio_efectivo": 34183, "stock": 0}, {"cod": "0200050000400005", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO ACANALADO COR PINTITAS", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 48800, "precio_efectivo": 39040, "stock": 0}, {"cod": "0200050000700001", "nombre": "OLD BUNCH CARDIGAN PIEL ROSA", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 27088, "precio_efectivo": 21670, "stock": 0}, {"cod": "0200050000100002", "nombre": "OLD BUNCH ENTERITO INTERLOCK PERRITOS", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 53360, "precio_efectivo": 42688, "stock": 0}, {"cod": "0200050000100003", "nombre": "OLD BUNCH ENTERITO PLUSH OSITO BOUCLE", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 51034, "precio_efectivo": 40827, "stock": 0}, {"cod": "0200050000700002", "nombre": "OLD BUNCH BUZO BOUCLE PERRO", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 28725, "precio_efectivo": 22980, "stock": 0}, {"cod": "0200050000700003", "nombre": "OLD BUNCH CARDIGAN BOUCLE CRUDO", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 19875, "precio_efectivo": 15900, "stock": 0}, {"cod": "0200050000300005", "nombre": "OLD BUNCH BODY MOÑO LIBERTY", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 30400, "precio_efectivo": 24320, "stock": 0}, {"cod": "0200050000100004", "nombre": "OLD BUNCH ENTERITO BRUSH OSO MOÑO", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 46372, "precio_efectivo": 37098, "stock": 0}, {"cod": "0200050000600001", "nombre": "OLD BUNCH MEDIAS OSITO RAYADO", "familia": "ROPA", "subfam": "MEDIAS", "proveedor": "OLD BUNCH", "precio": 4800, "precio_efectivo": 3840, "stock": 0}, {"cod": "0200050000600002", "nombre": "OLD BUNCH MEDIAS OSITO RAYADO", "familia": "ROPA", "subfam": "MEDIAS", "proveedor": "OLD BUNCH", "precio": 4800, "precio_efectivo": 3748, "stock": 0}, {"cod": "0200010000300030", "nombre": "CLARA VALENCIA BABERO DOROTEA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 8649, "stock": 0}, {"cod": "0200010000300031", "nombre": "CLARA VALENCIA BABERO AURORA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 9092, "stock": -1}, {"cod": "0200010001600002", "nombre": "CLARA VALENCIA MANTA CON POMPON", "familia": "ACCESORIOS BEBE", "subfam": "MANTAS", "proveedor": "CLARA VALENCIA", "precio": 38000, "precio_efectivo": 41026, "stock": 0}, {"cod": "0200010000300032", "nombre": "CLARA VALENCIA BABERO FLOR", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 9072, "stock": 0}];
+
+let currentFilter = '';
+let currentSearch = '';
+let currentSort = 'nombre';
+let activeProd = null;
+
+function fmt(n){ return '$ ' + n.toLocaleString('es-AR'); }
+
+function stockClass(s){
+  if(s === 0) return 'out';
+  if(s <= 2) return 'low';
+  return 'ok';
+}
+function stockLabel(s){
+  if(s === 0) return '⛔ Sin stock';
+  if(s <= 2) return '⚠️ Últimas ' + s;
+  return s + ' unidades';
+}
+
+function setFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('on', p.dataset.f === f);
+  });
+  render();
+}
+
+function render(){
+  currentSort = document.getElementById('sort').value;
+  let list = PRODUCTS.filter(p => {
+    const q = currentSearch.toLowerCase();
+    const matchSearch = !q || p.nombre.toLowerCase().includes(q) || 
+                        p.subfam.toLowerCase().includes(q) ||
+                        p.familia.toLowerCase().includes(q);
+    let matchFilter = true;
+    if(currentFilter === 'KOWI') matchFilter = p.proveedor === 'KOWI';
+    else if(currentFilter === 'stock') matchFilter = p.stock > 0;
+    else if(currentFilter) matchFilter = p.familia === currentFilter || p.subfam === currentFilter;
+    return matchSearch && matchFilter;
+  });
+
+  // Sort
+  if(currentSort === 'nombre') list.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  else if(currentSort === 'precio_asc') list.sort((a,b)=>a.precio-b.precio);
+  else if(currentSort === 'precio_desc') list.sort((a,b)=>b.precio-a.precio);
+  else if(currentSort === 'stock') list.sort((a,b)=>b.stock-a.stock);
+
+  document.getElementById('res-count').textContent = list.length + ' resultados';
+  document.getElementById('empty').style.display = list.length ? 'none' : 'block';
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = list.map(p => `
+    <div class="card" onclick="openModal('${p.cod}')">
+      <div class="card-body">
+        <div class="card-subfam">${p.subfam || p.familia}</div>
+        <div class="card-name">${p.nombre.replace('- MODELO','<br><span style="font-weight:400;font-size:11px;color:#888">MODELO')}</span></div>
+        <div class="card-price">${fmt(p.precio)}</div>
+        <div class="card-price-sub">transferencia</div>
+      </div>
+      <div class="card-footer">
+        <span class="prov-tag ${p.proveedor==='KOWI'?'kowi':''}">${p.proveedor}</span>
+        <div class="stock-dot ${stockClass(p.stock)}" title="Stock: ${p.stock}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openModal(cod){
+  const p = PRODUCTS.find(x => x.cod === cod);
+  if(!p) return;
+  activeProd = p;
+  document.getElementById('m-subfam').textContent = p.subfam || p.familia;
+  document.getElementById('m-name').textContent = p.nombre;
+  document.getElementById('m-price').textContent = fmt(p.precio);
+  document.getElementById('m-efect').textContent = fmt(p.precio_efectivo);
+  document.getElementById('m-fam').textContent = p.familia;
+  document.getElementById('m-prov').textContent = p.proveedor;
+  document.getElementById('m-cod').textContent = p.cod;
+  const sc = stockClass(p.stock);
+  const sb = document.getElementById('m-stock-block');
+  sb.className = 'stock-block ' + sc;
+  document.getElementById('m-stock').textContent = stockLabel(p.stock);
+  document.getElementById('overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e){
+  if(e.target === document.getElementById('overlay')){
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+}
+
+function copyCod(){
+  if(!activeProd) return;
+  navigator.clipboard.writeText(activeProd.cod).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copiado';
+    setTimeout(()=>btn.textContent='Copiar código', 1500);
+  });
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KOWI · Ventas</title>
+<style>
+:root{
+  --brand:#1a237e;--brand2:#283593;--accent:#e65100;--green:#2e7d32;--green-l:#e8f5e9;
+  --red:#c62828;--red-l:#ffebee;--amber:#f57c00;--amber-l:#fff8e1;
+  --bg:#f0f4f8;--card:#fff;--border:#e0e0e0;--sub:#546e7a;--text:#1a1a1a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+     background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:20px}
+
+/* HEADER */
+.hdr{background:var(--brand);color:#fff;padding:14px 16px 0;
+     box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{font-size:20px;font-weight:800;letter-spacing:.3px}
+.logo em{color:#ffb74d;font-style:normal}
+.badge{background:rgba(255,255,255,.2);border-radius:20px;
+       padding:4px 12px;font-size:12px;font-weight:600}
+
+/* TABS */
+.tabs{display:flex}
+.tab{flex:1;padding:10px 4px;font-size:13px;font-weight:600;
+     color:rgba(255,255,255,.55);cursor:pointer;
+     border-bottom:3px solid transparent;text-align:center;
+     transition:all .2s;-webkit-tap-highlight-color:transparent}
+.tab.on{color:#fff;border-bottom-color:#ffb74d}
+
+/* PANELS */
+.panel{display:none;padding:14px 12px}
+.panel.on{display:block}
+
+/* CARDS */
+.card{background:var(--card);border-radius:16px;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:14px;overflow:hidden}
+.card-hdr{background:var(--brand);color:#fff;padding:11px 14px;
+          font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-body{padding:14px}
+
+/* FIELDS */
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--sub);
+     text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.req{color:var(--accent)}
+
+/* NATIVE SELECT — funciona en iOS y Android */
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'▼';position:absolute;right:14px;top:50%;
+                 transform:translateY(-50%);font-size:11px;color:var(--sub);
+                 pointer-events:none}
+select{width:100%;padding:13px 36px 13px 14px;border:2px solid var(--border);
+       border-radius:12px;font-size:16px;background:#fff;color:var(--text);
+       -webkit-appearance:none;appearance:none;outline:none;cursor:pointer}
+select:focus{border-color:var(--brand)}
+
+/* TEXT INPUTS */
+input[type=text],input[type=number],input[type=search]{
+  width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:12px;
+  font-size:16px;background:#fff;color:var(--text);outline:none;
+  -webkit-appearance:none;appearance:none}
+input:focus{border-color:var(--brand)}
+input[type=number]{text-align:right}
+
+/* QTY */
+.qty-row{display:flex;align-items:center;gap:0}
+.qb{width:50px;height:50px;border:2px solid var(--border);background:#f5f5f5;
+    font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    color:var(--brand);font-weight:700;flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;user-select:none}
+.qb:first-child{border-radius:12px 0 0 12px}
+.qb:last-child{border-radius:0 12px 12px 0}
+.qb:active{background:#e0e7ff}
+.qn{flex:1;height:50px;border:2px solid var(--border);border-left:none;border-right:none;
+    text-align:center;font-size:22px;font-weight:800;color:var(--brand);
+    background:#fff;outline:none;-webkit-appearance:none;padding:0}
+
+/* TOGGLES */
+.tog-group{display:flex;gap:8px}
+.tog{flex:1;padding:13px 8px;border:2px solid var(--border);border-radius:12px;
+     text-align:center;font-size:15px;font-weight:700;cursor:pointer;
+     background:#fafafa;color:var(--sub);transition:all .15s;
+     -webkit-tap-highlight-color:transparent;user-select:none}
+.tog:active{opacity:.8}
+.tog.g{border-color:var(--green);background:var(--green);color:#fff}
+.tog.b{border-color:var(--brand);background:var(--brand);color:#fff}
+.tog.o{border-color:var(--accent);background:var(--accent);color:#fff}
+
+/* SELECTED PRODUCT */
+.sel-prod{background:var(--green-l);border:2px solid #81c784;border-radius:12px;
+          padding:12px 14px;margin-top:10px;display:none}
+.sel-prod.show{display:block}
+.sel-prod-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sel-prod-name{font-size:14px;font-weight:700;color:var(--green);flex:1;line-height:1.3}
+.sel-prod-price{font-size:18px;font-weight:800;color:var(--accent);white-space:nowrap}
+.sel-prod-clear{background:none;border:none;font-size:24px;cursor:pointer;
+                color:#888;padding:0;line-height:1;flex-shrink:0}
+
+/* ADD BUTTON */
+.btn-add{width:100%;padding:14px;border:none;border-radius:12px;
+         background:var(--accent);color:#fff;font-size:16px;font-weight:800;
+         cursor:pointer;margin-top:12px;letter-spacing:.3px;
+         -webkit-tap-highlight-color:transparent}
+.btn-add:active{filter:brightness(.9)}
+.btn-add:disabled{background:#bbb;cursor:not-allowed}
+
+/* ITEMS LIST */
+.items-list{margin-bottom:14px}
+.item-row{background:var(--card);border-radius:12px;padding:12px 14px;
+          margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);
+          display:flex;align-items:flex-start;gap:10px}
+.ir-info{flex:1;min-width:0}
+.ir-name{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:2px}
+.ir-sub{font-size:11px;color:var(--sub);margin-bottom:3px}
+.ir-price{font-size:14px;font-weight:700;color:var(--accent)}
+.ir-del{background:none;border:none;font-size:24px;cursor:pointer;
+        color:#ddd;padding:0;flex-shrink:0;
+        -webkit-tap-highlight-color:transparent}
+.ir-del:active{color:var(--red)}
+
+/* TOTALS */
+.totals{background:var(--brand);color:#fff;border-radius:14px;
+        padding:16px;margin-bottom:14px}
+.tot-r{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}
+.tot-disc{color:#ffb74d}
+.tot-big{font-size:22px;font-weight:900;
+         border-top:1px solid rgba(255,255,255,.3);margin-top:8px;padding-top:10px}
+
+/* SAVE / CANCEL */
+.btn-save{width:100%;padding:16px;border:none;border-radius:14px;
+          background:var(--green);color:#fff;font-size:17px;font-weight:800;
+          cursor:pointer;margin-bottom:10px;letter-spacing:.3px;
+          -webkit-tap-highlight-color:transparent}
+.btn-save:active{filter:brightness(.9)}
+.btn-cancel{width:100%;padding:13px;border:2px solid #ccc;border-radius:12px;
+            background:#fff;color:var(--sub);font-size:14px;font-weight:600;
+            cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* HISTORIAL */
+.hi{background:var(--card);border-radius:14px;padding:14px;
+    margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.hi-top{display:flex;justify-content:space-between;align-items:flex-start;
+        gap:8px;margin-bottom:7px}
+.hi-title{font-size:14px;font-weight:700;flex:1;line-height:1.4}
+.hi-monto{font-size:17px;font-weight:800;color:var(--accent);white-space:nowrap}
+.hi-items{font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.7}
+.hi-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.htag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;
+      background:#e8eaf6;color:#283593}
+.htag.tc{background:#dbeafe;color:#1e3a8a}
+.htag.nc{background:#dcfce7;color:#14532d}
+.htag.ef{background:#fef9c3;color:#713f12}
+.hi-date{font-size:11px;color:var(--sub)}
+.hi-actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;
+            border-top:1px solid var(--border)}
+.btn-del-venta{flex:1;padding:9px;border:2px solid var(--red);border-radius:10px;
+               background:#fff;color:var(--red);font-size:13px;font-weight:700;
+               cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn-del-venta:active{background:var(--red-l)}
+
+/* RESUMEN */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.sc{background:var(--card);border-radius:14px;padding:14px;text-align:center;
+    box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.sc-lbl{font-size:11px;font-weight:700;color:var(--sub);
+        text-transform:uppercase;margin-bottom:5px}
+.sc-val{font-size:22px;font-weight:800}
+.ov{color:var(--accent)}.gv{color:var(--green)}.bv{color:var(--brand)}
+.ebtn{width:100%;padding:14px;border:2px solid var(--brand);border-radius:12px;
+      background:#fff;color:var(--brand);font-size:14px;font-weight:700;
+      cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent}
+.dbtn{width:100%;padding:14px;border:2px solid var(--red);border-radius:12px;
+      background:#fff;color:var(--red);font-size:14px;font-weight:600;
+      cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--sub)}
+.empty-ico{font-size:48px;margin-bottom:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+       background:#222;color:#fff;padding:12px 24px;border-radius:24px;
+       font-size:14px;font-weight:500;z-index:9999;
+       opacity:0;pointer-events:none;transition:opacity .25s;
+       white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+
+/* CONFIRM MODAL */
+.conf-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);
+              z-index:9998;display:none;align-items:center;justify-content:center;
+              padding:20px}
+.conf-overlay.show{display:flex}
+.conf-box{background:#fff;border-radius:20px;padding:24px;max-width:320px;
+          width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.conf-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.conf-msg{font-size:14px;color:var(--sub);margin-bottom:20px;line-height:1.5}
+.conf-btns{display:flex;gap:10px}
+.conf-no{flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;
+         background:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.conf-yes{flex:1;padding:12px;border:none;border-radius:12px;
+          background:var(--red);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">KOWI <em>·</em> Ventas</div>
+    <div class="badge" id="badge">0 productos</div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" data-t="form" onclick="goTab('form')">➕ Nueva</div>
+    <div class="tab" data-t="hist" onclick="goTab('hist')">📋 Historial</div>
+    <div class="tab" data-t="sum"  onclick="goTab('sum')">📊 Resumen</div>
+  </div>
+</div>
+
+<!-- ══ NUEVA VENTA ══ -->
+<div class="panel on" id="p-form">
+
+  <div class="card">
+    <div class="card-hdr">🛍️ Agregar producto</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label class="lbl">Producto <span class="req">*</span></label>
+        <div class="sel-wrap">
+          <select id="prod-sel" onchange="onProdSel(this.value)">
+            <option value="">— Seleccioná un producto —</option>
+          </select>
+        </div>
+        <div class="sel-prod" id="sel-prod">
+          <div class="sel-prod-top">
+            <div class="sel-prod-name" id="sel-name"></div>
+            <div class="sel-prod-price" id="sel-price"></div>
+            <button class="sel-prod-clear" onclick="clearSel()">×</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Cantidad</label>
+        <div class="qty-row">
+          <button class="qb" onclick="chgQty(-1)">−</button>
+          <input class="qn" id="qty" type="number" inputmode="numeric" value="1" min="1" max="99">
+          <button class="qb" onclick="chgQty(1)">+</button>
+        </div>
+      </div>
+
+      <button class="btn-add" id="btn-add" onclick="addItem()" disabled>＋ Agregar a la venta</button>
+    </div>
+  </div>
+
+  <!-- Items agregados -->
+  <div class="items-list" id="items-list" style="display:none"></div>
+
+  <!-- Cobro — inputs persistentes, nunca re-renderizados -->
+  <div class="card" id="cobro-card" style="display:none">
+    <div class="card-hdr">💸 Cobro</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label class="lbl">Método de pago <span class="req">*</span></label>
+        <div class="tog-group">
+          <div class="tog g" id="t-tr" onclick="setMet('TR')">📲 Transferencia</div>
+          <div class="tog" id="t-ef" onclick="setMet('EF')">💵 Efectivo</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Quién cobró <span class="req">*</span></label>
+        <div class="tog-group">
+          <div class="tog b" id="t-tc" onclick="setQ('TC')">TC</div>
+          <div class="tog"   id="t-nc" onclick="setQ('NC')">NC</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Descuento % <span style="text-transform:none;font-weight:400;font-size:11px">(opcional)</span></label>
+        <input type="number" inputmode="decimal" id="desc" min="0" max="100" placeholder="0" oninput="updTot()">
+      </div>
+
+      <div class="field">
+        <label class="lbl">Envío $ <span style="text-transform:none;font-weight:400;font-size:11px">(opcional)</span></label>
+        <input type="number" inputmode="decimal" id="env" min="0" placeholder="$ 0" oninput="updTot()">
+      </div>
+
+      <div class="field">
+        <label class="lbl">Cliente <span style="text-transform:none;font-weight:400;font-size:11px">(opcional)</span></label>
+        <input type="text" id="cli" placeholder="Nombre del cliente">
+      </div>
+
+      <div class="field">
+        <label class="lbl">Observaciones</label>
+        <input type="text" id="obs" placeholder="Ej: envío incluido, regalo...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Totales -->
+  <div class="totals" id="tot-block" style="display:none">
+    <div class="tot-r"><span id="tot-lbl">Subtotal</span><span id="tot-sub"></span></div>
+    <div class="tot-r tot-disc" id="tot-disc-r" style="display:none">
+      <span id="tot-disc-l">Descuento</span><span id="tot-disc-v"></span>
+    </div>
+    <div class="tot-r" id="tot-env-r" style="display:none">
+      <span>Envío</span><span id="tot-env-v"></span>
+    </div>
+    <div class="tot-r tot-big"><span>TOTAL</span><span id="tot-tot"></span></div>
+  </div>
+
+  <button class="btn-save" id="btn-save" style="display:none" onclick="guardar()">✓ GUARDAR VENTA</button>
+  <button class="btn-cancel" id="btn-cancel" style="display:none" onclick="resetForm()">Cancelar y empezar de nuevo</button>
+
+</div>
+
+<!-- ══ HISTORIAL ══ -->
+<div class="panel" id="p-hist">
+  <div id="hist-list"></div>
+</div>
+
+<!-- ══ RESUMEN ══ -->
+<div class="panel" id="p-sum">
+  <div class="sg">
+    <div class="sc"><div class="sc-lbl">Total vendido</div><div class="sc-val ov" id="s-tot">$ 0</div></div>
+    <div class="sc"><div class="sc-lbl">Ventas</div><div class="sc-val bv" id="s-cnt">0</div></div>
+    <div class="sc"><div class="sc-lbl">TC cobró</div><div class="sc-val gv" id="s-tc">$ 0</div></div>
+    <div class="sc"><div class="sc-lbl">NC cobró</div><div class="sc-val gv" id="s-nc">$ 0</div></div>
+  </div>
+  <button class="ebtn" onclick="exportCSV()">📥 Exportar CSV para Excel</button>
+  <button class="dbtn" onclick="clearAll()">🗑️ Borrar todo el historial</button>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="conf-overlay" id="conf-overlay">
+  <div class="conf-box">
+    <div class="conf-title" id="conf-title">¿Confirmás?</div>
+    <div class="conf-msg" id="conf-msg"></div>
+    <div class="conf-btns">
+      <button class="conf-no" onclick="closeConf()">Cancelar</button>
+      <button class="conf-yes" id="conf-yes">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PRODS = [{"cod": "0200010000500022", "nombre": "BAMBU - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 24000, "precio_efectivo": 27666, "stock": 0, "kowi": true}, {"cod": "0200010000500036", "nombre": "BENI - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 21884, "stock": 0, "kowi": true}, {"cod": "0200010000900001", "nombre": "BRUNA CHUPETE DE FRUTA DULCE DE LECHE 6/12 MESES", "familia": "ACCESORIOS BEBE", "subfam": "CHUPETES DE FRUTA", "proveedor": "BRUNA", "precio": 20000, "precio_efectivo": 18587, "stock": 0, "kowi": false}, {"cod": "0200010001000001", "nombre": "BRUNA CORREA DE AGARRE LISA BEIGE", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 7056, "stock": 0, "kowi": false}, {"cod": "0200010001000002", "nombre": "BRUNA CORREA DE SILICONA DINOSAURIO GRIS", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 6854, "stock": 0, "kowi": false}, {"cod": "0200010001000003", "nombre": "BRUNA CORREA DE SILICONA DINOSAURIO VERDE MUSGO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "BRUNA", "precio": 7800, "precio_efectivo": 6854, "stock": 0, "kowi": false}, {"cod": "0200010000800003", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE AVENA", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0, "kowi": false}, {"cod": "0200010000800004", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE AZUL PÁLIDO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0, "kowi": false}, {"cod": "0200010000800002", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE BEIGE", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0, "kowi": false}, {"cod": "0200010000800006", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE ROSA VIEJO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0, "kowi": false}, {"cod": "0200010000800005", "nombre": "BRUNA GUARDACHUPETE DE SILICONA CON CIERRE VERDE MUSGO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 18000, "precio_efectivo": 20059, "stock": 0, "kowi": false}, {"cod": "0200010000800013", "nombre": "BRUNA GUARDACHUPETE DE SILICONA LEON ROSA", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 15040, "precio_efectivo": 11991, "stock": 0, "kowi": false}, {"cod": "0200010000800001", "nombre": "BRUNA GUARDACHUPETE DE SILICONA LEON ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "BRUNA", "precio": 15040, "precio_efectivo": 11991, "stock": 1, "kowi": false}, {"cod": "0200010000500014", "nombre": "BRUNA PORTACHUPETE DE SILICONA ARCOIRIS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -1, "kowi": false}, {"cod": "0200010000500012", "nombre": "BRUNA PORTACHUPETE DE SILICONA DINO", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -1, "kowi": false}, {"cod": "0200010000500015", "nombre": "BRUNA PORTACHUPETE DE SILICONA FLORES", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -3, "kowi": false}, {"cod": "0200010000500013", "nombre": "BRUNA PORTACHUPETE DE SILICONA JIRAFA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "BRUNA", "precio": 15920, "precio_efectivo": 15926, "stock": -3, "kowi": false}, {"cod": "0200010000300031", "nombre": "CLARA VALENCIA BABERO AURORA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 9092, "stock": -1, "kowi": false}, {"cod": "0200010000300019", "nombre": "CLARA VALENCIA BABERO BANDA ESTAMPADO RAYAS AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 5846, "stock": 2, "kowi": false}, {"cod": "0200010000300020", "nombre": "CLARA VALENCIA BABERO BANDA ESTAMPADO RAYAS CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 5846, "stock": 0, "kowi": false}, {"cod": "0200010000300006", "nombre": "CLARA VALENCIA BABERO BANDANA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 0, "kowi": false}, {"cod": "0200010000300007", "nombre": "CLARA VALENCIA BABERO BANDANA AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": -6, "kowi": false}, {"cod": "0200010000300008", "nombre": "CLARA VALENCIA BABERO BANDANA CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 2, "kowi": false}, {"cod": "0200010000300009", "nombre": "CLARA VALENCIA BABERO BANDANA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 6960, "precio_efectivo": 6431, "stock": 0, "kowi": false}, {"cod": "0200010000300002", "nombre": "CLARA VALENCIA BABERO BERNARDA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": 0, "kowi": false}, {"cod": "0200010000300001", "nombre": "CLARA VALENCIA BABERO BERNARDA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": -1, "kowi": false}, {"cod": "0200010000300003", "nombre": "CLARA VALENCIA BABERO BERNARDA TISA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9840, "precio_efectivo": 9092, "stock": 0, "kowi": false}, {"cod": "0200010000300021", "nombre": "CLARA VALENCIA BABERO CANDY ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9600, "precio_efectivo": 8870, "stock": -2, "kowi": false}, {"cod": "0200010000300022", "nombre": "CLARA VALENCIA BABERO CANDY ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9600, "precio_efectivo": 8870, "stock": 2, "kowi": false}, {"cod": "0200010000300015", "nombre": "CLARA VALENCIA BABERO CARLITO ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7762, "stock": -1, "kowi": false}, {"cod": "0200010000300016", "nombre": "CLARA VALENCIA BABERO CARLITO CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7762, "stock": 1, "kowi": false}, {"cod": "0200010000300017", "nombre": "CLARA VALENCIA BABERO CARMELA SIN PUNTILLA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 7540, "stock": 1, "kowi": false}, {"cod": "0200010000300010", "nombre": "CLARA VALENCIA BABERO CLARA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9360, "precio_efectivo": 8649, "stock": 0, "kowi": false}, {"cod": "0200010000300030", "nombre": "CLARA VALENCIA BABERO DOROTEA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 8649, "stock": 0, "kowi": false}, {"cod": "0200010000300032", "nombre": "CLARA VALENCIA BABERO FLOR", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12160, "precio_efectivo": 9072, "stock": 0, "kowi": false}, {"cod": "0200010000300004", "nombre": "CLARA VALENCIA BABERO JAZMIN ROSA CAMPO DE FLORES", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12720, "precio_efectivo": 11066, "stock": 0, "kowi": false}, {"cod": "0200010000300018", "nombre": "CLARA VALENCIA BABERO KIT NEW BORN", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 20000, "precio_efectivo": 19958, "stock": -1, "kowi": false}, {"cod": "0200010000300012", "nombre": "CLARA VALENCIA BABERO MARÍA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": -3, "kowi": false}, {"cod": "0200010000300014", "nombre": "CLARA VALENCIA BABERO MARÍA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": 1, "kowi": false}, {"cod": "0200010000300013", "nombre": "CLARA VALENCIA BABERO MARÍA VERDE MINT", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 10080, "precio_efectivo": 9314, "stock": 0, "kowi": false}, {"cod": "0200010000300005", "nombre": "CLARA VALENCIA BABERO NATURAL CON BARQUITO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 12720, "precio_efectivo": 11066, "stock": 0, "kowi": false}, {"cod": "0200010000300011", "nombre": "CLARA VALENCIA BABERO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "CLARA VALENCIA", "precio": 9360, "precio_efectivo": 8649, "stock": 1, "kowi": false}, {"cod": "0200010000400006", "nombre": "CLARA VALENCIA BABITA BORDADA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5600, "precio_efectivo": 7196, "stock": 0, "kowi": false}, {"cod": "0200010000400007", "nombre": "CLARA VALENCIA BABITA ESTAMPADA ALGODON RAYAS", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5200, "precio_efectivo": 6830, "stock": 1, "kowi": false}, {"cod": "0200010000400003", "nombre": "CLARA VALENCIA BABITAS  ARENA", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010000400005", "nombre": "CLARA VALENCIA BABITAS  AZUL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010000400004", "nombre": "CLARA VALENCIA BABITAS  CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 1, "kowi": false}, {"cod": "0200010000400002", "nombre": "CLARA VALENCIA BABITAS  NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": -1, "kowi": false}, {"cod": "0200010000400001", "nombre": "CLARA VALENCIA BABITAS  ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABITAS", "proveedor": "CLARA VALENCIA", "precio": 5040, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010001600002", "nombre": "CLARA VALENCIA MANTA CON POMPON", "familia": "ACCESORIOS BEBE", "subfam": "MANTAS", "proveedor": "CLARA VALENCIA", "precio": 38000, "precio_efectivo": 41026, "stock": 0, "kowi": false}, {"cod": "0200010000100001", "nombre": "CLARA VALENCIA MOÑO ANGELES ROSA ARENA NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "ACCESORIOS PARA EL PELO", "proveedor": "CLARA VALENCIA", "precio": 8400, "precio_efectivo": 11088, "stock": 0, "kowi": false}, {"cod": "0200010000500009", "nombre": "CLARA VALENCIA PORTACHUPETE ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010000500010", "nombre": "CLARA VALENCIA PORTACHUPETE CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 2, "kowi": false}, {"cod": "0200010000500005", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS AZUL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 5846, "stock": 1, "kowi": false}, {"cod": "0200010000500004", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 5846, "stock": 1, "kowi": false}, {"cod": "0200010000500006", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6431, "stock": -3, "kowi": false}, {"cod": "0200010000500007", "nombre": "CLARA VALENCIA PORTACHUPETE IRIS ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6431, "stock": 0, "kowi": false}, {"cod": "0200010000500008", "nombre": "CLARA VALENCIA PORTACHUPETE NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010000500003", "nombre": "CLARA VALENCIA PORTACHUPETE NINA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6653, "stock": -1, "kowi": false}, {"cod": "0200010000500002", "nombre": "CLARA VALENCIA PORTACHUPETE NINA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 7600, "precio_efectivo": 6653, "stock": 0, "kowi": false}, {"cod": "0200010000500011", "nombre": "CLARA VALENCIA PORTACHUPETE ROSA", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "CLARA VALENCIA", "precio": 6800, "precio_efectivo": 5988, "stock": 0, "kowi": false}, {"cod": "0200010000500023", "nombre": "COCO - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 26000, "precio_efectivo": 29739, "stock": 0, "kowi": true}, {"cod": "0200040000100003", "nombre": "COCO HOUSE CUBO MONTESORI COHETE", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0, "kowi": false}, {"cod": "0200040000100004", "nombre": "COCO HOUSE CUBO MONTESORI OSO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0, "kowi": false}, {"cod": "0200040000100002", "nombre": "COCO HOUSE CUBO MONTESORI ZORRO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": -1, "kowi": false}, {"cod": "0200040000100001", "nombre": "COCO HOUSE CUBO SENSORIAL UNICORNIO", "familia": "JUGUETES", "subfam": "CUBO SENSORIAL", "proveedor": "COCO HOUSE", "precio": 23920, "precio_efectivo": 23936, "stock": 0, "kowi": false}, {"cod": "0200040000300001", "nombre": "COCO HOUSE LIBRO TELA LEON", "familia": "JUGUETES", "subfam": "LIBRO TELA", "proveedor": "COCO HOUSE", "precio": 23200, "precio_efectivo": 21864, "stock": -2, "kowi": false}, {"cod": "0200040000300002", "nombre": "COCO HOUSE LIBRO TELA OSO", "familia": "JUGUETES", "subfam": "LIBRO TELA", "proveedor": "COCO HOUSE", "precio": 23200, "precio_efectivo": 21864, "stock": 0, "kowi": false}, {"cod": "0200040000200001", "nombre": "COCO HOUSE SONAJERO BARRAL FRUTILLA", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -2, "kowi": false}, {"cod": "0200040000200002", "nombre": "COCO HOUSE SONAJERO BARRAL PERITA", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -3, "kowi": false}, {"cod": "0200040000200003", "nombre": "COCO HOUSE SONAJERO BARRAL TEDDY", "familia": "JUGUETES", "subfam": "SONAJERO BARRAL", "proveedor": "COCO HOUSE", "precio": 27040, "precio_efectivo": 26996, "stock": -1, "kowi": false}, {"cod": "0200010000500016", "nombre": "ESTRELLA - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16400, "precio_efectivo": 19482, "stock": 0, "kowi": true}, {"cod": "0200010000400008", "nombre": "FROMBEIRUT ALFOMBRA ESTIMULANTE DE AGUA", "familia": "ACCESORIOS BEBE", "subfam": "ALFOMBRA", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 14784, "stock": -1, "kowi": false}, {"cod": "0200010000300028", "nombre": "FROMBEIRUT BABERO MUSELINA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 5200, "precio_efectivo": 6125, "stock": 0, "kowi": false}, {"cod": "0200010000300029", "nombre": "FROMBEIRUT BABERO SILICONA LISO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8659, "stock": -3, "kowi": false}, {"cod": "0200010000300027", "nombre": "FROMBEIRUT BABERO TRANSPARENTE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "FROMBEIRUT", "precio": 3600, "precio_efectivo": 3000, "stock": 0, "kowi": false}, {"cod": "0200010001300002", "nombre": "FROMBEIRUT CAMBIADOR PORTATIL CONEJO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "CAMBIADOR", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 13306, "stock": 0, "kowi": false}, {"cod": "0200010002400001", "nombre": "FROMBEIRUT CEPILLO LIMPIA MAMADERAS", "familia": "ACCESORIOS BEBE", "subfam": "CEPILLO MAMADERA", "proveedor": "FROMBEIRUT", "precio": 11600, "precio_efectivo": 10598, "stock": -1, "kowi": false}, {"cod": "0200010002500001", "nombre": "FROMBEIRUT COBERTOR DE CHOCHE UNIVERSAL", "familia": "ACCESORIOS BEBE", "subfam": "COBERTOR DE CHOCHE", "proveedor": "FROMBEIRUT", "precio": 14400, "precio_efectivo": 15629, "stock": 0, "kowi": false}, {"cod": "0200010002600001", "nombre": "FROMBEIRUT CUCHARA DOSIFICADORA MEDICAMENTOS", "familia": "ACCESORIOS BEBE", "subfam": "CUCHARA DOSIFICADORA", "proveedor": "FROMBEIRUT", "precio": 3200, "precio_efectivo": 4013, "stock": 0, "kowi": false}, {"cod": "0200010002100002", "nombre": "FROMBEIRUT CUIERTOS MINI SILICONA COLORES", "familia": "ACCESORIOS BEBE", "subfam": "CUBIERTOS", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8659, "stock": -3, "kowi": false}, {"cod": "0200010001900001", "nombre": "FROMBEIRUT ESQUINERO REDONDO", "familia": "ACCESORIOS BEBE", "subfam": "ESQUINERO", "proveedor": "FROMBEIRUT", "precio": 6400, "precio_efectivo": 7751, "stock": 0, "kowi": false}, {"cod": "0200010002200001", "nombre": "FROMBEIRUT MOLDE DE HELADOS DE SILICONA", "familia": "ACCESORIOS BEBE", "subfam": "MOLDE DE HELADOS", "proveedor": "FROMBEIRUT", "precio": 7040, "precio_efectivo": 8237, "stock": -1, "kowi": false}, {"cod": "0200010002800001", "nombre": "FROMBEIRUT MOSQUITERO UNIVERSAL", "familia": "ACCESORIOS BEBE", "subfam": "MOSQUITERO", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 8976, "stock": 0, "kowi": false}, {"cod": "0200010002700001", "nombre": "FROMBEIRUT NECESER CONEJO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "NECESER", "proveedor": "FROMBEIRUT", "precio": 7200, "precio_efectivo": 8448, "stock": 0, "kowi": false}, {"cod": "0200010002300001", "nombre": "FROMBEIRUT PALTOS DE SILICONA OSO COLORES", "familia": "ACCESORIOS BEBE", "subfam": "PLATOS", "proveedor": "FROMBEIRUT", "precio": 11200, "precio_efectivo": 10476, "stock": 0, "kowi": false}, {"cod": "0200010002900001", "nombre": "FROMBEIRUT PINTORCITO", "familia": "ACCESORIOS BEBE", "subfam": "PINTORCITO", "proveedor": "FROMBEIRUT", "precio": 12800, "precio_efectivo": 13622, "stock": -3, "kowi": false}, {"cod": "0200010002100001", "nombre": "FROMBEIRUT SET CUBIERTOS COLORES FIBRA DE TRIGO", "familia": "ACCESORIOS BEBE", "subfam": "CUBIERTOS", "proveedor": "FROMBEIRUT", "precio": 4400, "precio_efectivo": 5280, "stock": 0, "kowi": false}, {"cod": "0200010002000001", "nombre": "FROMBEIRUT TAPA ENCHUFE", "familia": "ACCESORIOS BEBE", "subfam": "TAPA ENCHUFE", "proveedor": "FROMBEIRUT", "precio": 7600, "precio_efectivo": 7855, "stock": 0, "kowi": false}, {"cod": "0200010001800001", "nombre": "FROMBEIRUT TOALLA EXTRA GRANDE", "familia": "ACCESORIOS BEBE", "subfam": "TOALLAS", "proveedor": "FROMBEIRUT", "precio": 28800, "precio_efectivo": 36854, "stock": 0, "kowi": false}, {"cod": "0200030000500001", "nombre": "KOWI 15", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 15200, "precio_efectivo": 19993, "stock": 0, "kowi": true}, {"cod": "0200030000500002", "nombre": "KOWI 16", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 15440, "precio_efectivo": 16667, "stock": 0, "kowi": true}, {"cod": "0200030000500003", "nombre": "KOWI 16 LABRADAS", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 18631, "stock": 0, "kowi": true}, {"cod": "0200030000500004", "nombre": "KOWI 17", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16960, "precio_efectivo": 21546, "stock": 0, "kowi": true}, {"cod": "0200030000500005", "nombre": "KOWI 18", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18000, "precio_efectivo": 20211, "stock": 0, "kowi": true}, {"cod": "0200010000500042", "nombre": "KOWI CANDY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20000, "precio_efectivo": 22729, "stock": 0, "kowi": true}, {"cod": "0200030000100001", "nombre": "KOWI LLAVERO 1", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 12000, "precio_efectivo": 11656, "stock": 0, "kowi": true}, {"cod": "0200030000100002", "nombre": "KOWI LLAVERO 2", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 14400, "precio_efectivo": 14823, "stock": 0, "kowi": true}, {"cod": "0200030000100003", "nombre": "KOWI LLAVERO 3", "familia": "ACCESORIOS PERSONALIZADOS", "subfam": "LLAVERO", "proveedor": "KOWI", "precio": 16000, "precio_efectivo": 18250, "stock": 0, "kowi": true}, {"cod": "0200010000500043", "nombre": "KOWI LUCKY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21600, "precio_efectivo": 24075, "stock": 0, "kowi": true}, {"cod": "0200010000500053", "nombre": "KOWI MADERA 1", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18560, "precio_efectivo": 21598, "stock": 0, "kowi": true}, {"cod": "0200010000500052", "nombre": "KOWI MADERA 2", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21120, "precio_efectivo": 24128, "stock": 0, "kowi": true}, {"cod": "0200010000500051", "nombre": "KOWI MADERA 3", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 22213, "stock": 0, "kowi": true}, {"cod": "0200010000500044", "nombre": "KOWI MARGARITAS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 23200, "precio_efectivo": 26232, "stock": 0, "kowi": true}, {"cod": "0200010000500045", "nombre": "KOWI PASTELES", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18800, "precio_efectivo": 21715, "stock": 0, "kowi": true}, {"cod": "0200010000500050", "nombre": "KOWI PETIT", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25600, "precio_efectivo": 27998, "stock": 0, "kowi": true}, {"cod": "0200010000500046", "nombre": "KOWI PURE BABY", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 21872, "stock": 0, "kowi": true}, {"cod": "0200010000500047", "nombre": "KOWI PURE BABY NAME", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 22400, "precio_efectivo": 24753, "stock": 0, "kowi": true}, {"cod": "0200010000500040", "nombre": "KOWI RAINBOW - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19600, "precio_efectivo": 23521, "stock": 0, "kowi": true}, {"cod": "0200010000500041", "nombre": "KOWI ROSE FLOWERS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 17600, "precio_efectivo": 18905, "stock": 0, "kowi": true}, {"cod": "0200010000500048", "nombre": "KOWI WHITE AND", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18400, "precio_efectivo": 20910, "stock": 0, "kowi": true}, {"cod": "0200010000500049", "nombre": "KOWI WHITE AND FLOWERS", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19200, "precio_efectivo": 21723, "stock": 0, "kowi": true}, {"cod": "0200010001200001", "nombre": "LA JUSTINA BOLSA DE DORMIR T2 GRIS PERLA", "familia": "ACCESORIOS BEBE", "subfam": "BOLSA DE DORMIR", "proveedor": "LA JUSTINA", "precio": 38952, "precio_efectivo": 38952, "stock": -1, "kowi": false}, {"cod": "0200010001300001", "nombre": "LA JUSTINA CAMBIADOR PORTATIL ESTAMPADO OSO", "familia": "ACCESORIOS BEBE", "subfam": "CAMBIADOR", "proveedor": "LA JUSTINA", "precio": 27457, "precio_efectivo": 27457, "stock": -1, "kowi": false}, {"cod": "0200010001400001", "nombre": "LA JUSTINA COLCHON DE COCHES CON VOLADOS ROSA VINTAGE", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 23627, "precio_efectivo": 23055, "stock": -1, "kowi": false}, {"cod": "0200010001400005", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO CHERRY", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": -2, "kowi": false}, {"cod": "0200010001400003", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO DINO", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": -1, "kowi": false}, {"cod": "0200010001400002", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO FLOREADO", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": 0, "kowi": false}, {"cod": "0200010001400004", "nombre": "LA JUSTINA COLCHON DE COCHES ESTAMPADO JUNGLA", "familia": "ACCESORIOS BEBE", "subfam": "COLCHON DE COCHES", "proveedor": "LA JUSTINA", "precio": 25916, "precio_efectivo": 25916, "stock": 0, "kowi": false}, {"cod": "0200010000300025", "nombre": "LA JUSTINA COMILION CON VOLADOS LISOS ROSA VINTAGE", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 12672, "stock": 0, "kowi": false}, {"cod": "0200010000300024", "nombre": "LA JUSTINA COMILON CON VOLADOS ESTAMPADOS FLOREADO", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 13517, "stock": 0, "kowi": false}, {"cod": "0200010000300026", "nombre": "LA JUSTINA COMILON CON VOLADOS ESTAMPADOS MARGARITAS FONDO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 13517, "stock": 0, "kowi": false}, {"cod": "0200010000300023", "nombre": "LA JUSTINA COMILON SIN VOLADOS ESTAMPADOS LEON", "familia": "ACCESORIOS BEBE", "subfam": "BABERO", "proveedor": "LA JUSTINA", "precio": 12640, "precio_efectivo": 11979, "stock": -1, "kowi": false}, {"cod": "0200010001600001", "nombre": "LA JUSTINA MANTAS POLAR SOFT HOJITAS OCRE", "familia": "ACCESORIOS BEBE", "subfam": "MANTAS", "proveedor": "LA JUSTINA", "precio": 20733, "precio_efectivo": 20733, "stock": -1, "kowi": false}, {"cod": "0200010001700001", "nombre": "LA JUSTINA PORTAENFANT LISOA ARENA", "familia": "ACCESORIOS BEBE", "subfam": "PORTAENFANT", "proveedor": "LA JUSTINA", "precio": 53710, "precio_efectivo": 53710, "stock": 0, "kowi": false}, {"cod": "0200010001500001", "nombre": "LA JUSTINA REDUCTOR", "familia": "ACCESORIOS BEBE", "subfam": "REDUCTOR", "proveedor": "LA JUSTINA", "precio": 30430, "precio_efectivo": 30430, "stock": -1, "kowi": false}, {"cod": "0200010000500017", "nombre": "LIA - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21840, "precio_efectivo": 25037, "stock": 0, "kowi": true}, {"cod": "0200010000500021", "nombre": "LIA SIN DIJE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20240, "precio_efectivo": 23183, "stock": 0, "kowi": true}, {"cod": "0200010001000010", "nombre": "LIFCHE CINTAS DE SILICONA AZUL SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": -4, "kowi": false}, {"cod": "0200010001000012", "nombre": "LIFCHE CINTAS DE SILICONA CREMA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": 0, "kowi": false}, {"cod": "0200010001000011", "nombre": "LIFCHE CINTAS DE SILICONA ROSA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": -1, "kowi": false}, {"cod": "0200010001000014", "nombre": "LIFCHE CINTAS DE SILICONA VACA ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0, "kowi": false}, {"cod": "0200010001000015", "nombre": "LIFCHE CINTAS DE SILICONA VACA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0, "kowi": false}, {"cod": "0200010001000013", "nombre": "LIFCHE CINTAS DE SILICONA VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 7862, "stock": 0, "kowi": false}, {"cod": "0200010001000016", "nombre": "LIFCHE CINTAS DE SILICONA ZORRO VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 7800, "precio_efectivo": 8266, "stock": 0, "kowi": false}, {"cod": "0200020001100001", "nombre": "LIFCHE GANCHO COCODRILO NEGRO", "familia": "ARMADO PRODUCCIÓN", "subfam": "GANCHO COCHE", "proveedor": "LIFCHE", "precio": 4000, "precio_efectivo": 4020, "stock": 0, "kowi": false}, {"cod": "0200010000800007", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO AVENA CLARO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": -4, "kowi": false}, {"cod": "0200010000800008", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO AZUL OSCURO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 10606, "stock": 0, "kowi": false}, {"cod": "0200010000800009", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO DORADO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010000800010", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO GRIS CLARO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": -1, "kowi": false}, {"cod": "0200010000800011", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO ROSA RUBOR", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": 0, "kowi": false}, {"cod": "0200010000800012", "nombre": "LIFCHE GUARDACHUPETES DE SILICONA OSO VERDE SECO", "familia": "ACCESORIOS BEBE", "subfam": "GUARDACHUPETES", "proveedor": "LIFCHE", "precio": 15040, "precio_efectivo": 11894, "stock": 0, "kowi": false}, {"cod": "0200010001000005", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS AZUL PASTEL", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010001000006", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS CREMA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010001000007", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS DURAZNO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010001000008", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS GRIS AZULADO", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010001000004", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS ROSA", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 11600, "precio_efectivo": 11145, "stock": 1, "kowi": false}, {"cod": "0200010001000009", "nombre": "LIFCHE PORTACHUPETE CINTA DE SILICONA ARCOIRIS VERDE", "familia": "ACCESORIOS BEBE", "subfam": "CINTA", "proveedor": "LIFCHE", "precio": 12800, "precio_efectivo": 12499, "stock": 0, "kowi": false}, {"cod": "0200010000500029", "nombre": "MARGOT NAME - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27760, "precio_efectivo": 32698, "stock": 0, "kowi": true}, {"cod": "0200010000500030", "nombre": "MARGOT WHITE - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 33200, "precio_efectivo": 39085, "stock": 0, "kowi": true}, {"cod": "0200010000500031", "nombre": "MARGOT WOOD - MODELO SILICONA 3 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 30400, "precio_efectivo": 36255, "stock": 0, "kowi": true}, {"cod": "0200010000500024", "nombre": "MIU - MODELO SILICONA PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21520, "precio_efectivo": 24319, "stock": 0, "kowi": true}, {"cod": "0200010000500025", "nombre": "NATURE - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25600, "precio_efectivo": 29530, "stock": 0, "kowi": true}, {"cod": "0200010000500026", "nombre": "NATURE FREE - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 29360, "precio_efectivo": 34233, "stock": 0, "kowi": true}, {"cod": "0200010000500027", "nombre": "NATURE FREE SHORT - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27200, "precio_efectivo": 32176, "stock": 0, "kowi": true}, {"cod": "0200010000500028", "nombre": "NATURE SILICONA - MODELO SILICONA 2 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27760, "precio_efectivo": 31723, "stock": 0, "kowi": true}, {"cod": "0200010000500038", "nombre": "NOA - MODELO XL PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 19120, "precio_efectivo": 22046, "stock": 0, "kowi": true}, {"cod": "0200010000500018", "nombre": "NUBE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21040, "precio_efectivo": 24005, "stock": 0, "kowi": true}, {"cod": "0200050000300004", "nombre": "OLD BUNCH BODY CONEJITA CON FLOTRES", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 31380, "precio_efectivo": 25104, "stock": 0, "kowi": false}, {"cod": "0200050000300002", "nombre": "OLD BUNCH BODY LIBERTY", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 25600, "precio_efectivo": 20480, "stock": 0, "kowi": false}, {"cod": "0200050000300003", "nombre": "OLD BUNCH BODY MANGA LARGA CON BOLSILLO", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 22313, "precio_efectivo": 17850, "stock": 0, "kowi": false}, {"cod": "0200050000300001", "nombre": "OLD BUNCH BODY MODAL PUNTILLA", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 23380, "precio_efectivo": 18704, "stock": 0, "kowi": false}, {"cod": "0200050000300005", "nombre": "OLD BUNCH BODY MOÑO LIBERTY", "familia": "ROPA", "subfam": "BODYS", "proveedor": "OLD BUNCH", "precio": 30400, "precio_efectivo": 24320, "stock": 0, "kowi": false}, {"cod": "0200050000700002", "nombre": "OLD BUNCH BUZO BOUCLE PERRO", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 28725, "precio_efectivo": 22980, "stock": 0, "kowi": false}, {"cod": "0200050000700003", "nombre": "OLD BUNCH CARDIGAN BOUCLE CRUDO", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 19875, "precio_efectivo": 15900, "stock": 0, "kowi": false}, {"cod": "0200050000700001", "nombre": "OLD BUNCH CARDIGAN PIEL ROSA", "familia": "ROPA", "subfam": "ABRIGOS", "proveedor": "OLD BUNCH", "precio": 27088, "precio_efectivo": 21670, "stock": 0, "kowi": false}, {"cod": "0200050000100001", "nombre": "OLD BUNCH ENETRITO PLUSH", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 42729, "precio_efectivo": 34183, "stock": 0, "kowi": false}, {"cod": "0200050000100004", "nombre": "OLD BUNCH ENTERITO BRUSH OSO MOÑO", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 46372, "precio_efectivo": 37098, "stock": 0, "kowi": false}, {"cod": "0200050000100002", "nombre": "OLD BUNCH ENTERITO INTERLOCK PERRITOS", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 53360, "precio_efectivo": 42688, "stock": 0, "kowi": false}, {"cod": "0200050000100003", "nombre": "OLD BUNCH ENTERITO PLUSH OSITO BOUCLE", "familia": "ROPA", "subfam": "ENTERITOS", "proveedor": "OLD BUNCH", "precio": 51034, "precio_efectivo": 40827, "stock": 0, "kowi": false}, {"cod": "0200050000600001", "nombre": "OLD BUNCH MEDIAS OSITO RAYADO", "familia": "ROPA", "subfam": "MEDIAS", "proveedor": "OLD BUNCH", "precio": 4800, "precio_efectivo": 3840, "stock": 0, "kowi": false}, {"cod": "0200050000600002", "nombre": "OLD BUNCH MEDIAS OSITO RAYADO", "familia": "ROPA", "subfam": "MEDIAS", "proveedor": "OLD BUNCH", "precio": 4800, "precio_efectivo": 3748, "stock": 0, "kowi": false}, {"cod": "0200050000400003", "nombre": "OLD BUNCH SET BATITA Y PANTALON PIMA OSO FLOR", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 34893, "precio_efectivo": 27914, "stock": 0, "kowi": false}, {"cod": "0200050000400002", "nombre": "OLD BUNCH SET BATITA Y PANTALON PIMA OSO GLOBO", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 34893, "precio_efectivo": 27914, "stock": 0, "kowi": false}, {"cod": "0200050000400005", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO ACANALADO COR PINTITAS", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 48800, "precio_efectivo": 39040, "stock": 0, "kowi": false}, {"cod": "0200050000400004", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO CONEJITOS", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 45913, "precio_efectivo": 36730, "stock": 0, "kowi": false}, {"cod": "0200050000400001", "nombre": "OLD BUNCH SET BODY RANITA Y GORRO PIMA GATITO", "familia": "ROPA", "subfam": "SET", "proveedor": "OLD BUNCH", "precio": 49401, "precio_efectivo": 39521, "stock": -1, "kowi": false}, {"cod": "0200010000500037", "nombre": "ONA - MODELO SILICONA 5 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 16320, "precio_efectivo": 19439, "stock": 0, "kowi": true}, {"cod": "0200010000200004", "nombre": "PURO BEBE CONEJO AMIGURUMI NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 21200, "precio_efectivo": 20275, "stock": 2, "kowi": false}, {"cod": "0200010000200001", "nombre": "PURO BEBE HIPO AMIGURUMI GRIS", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 20000, "precio_efectivo": 18797, "stock": 0, "kowi": false}, {"cod": "0200010000200002", "nombre": "PURO BEBE OSO BONI AMIGURUMI NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 16000, "precio_efectivo": 15523, "stock": 0, "kowi": false}, {"cod": "0200010000200003", "nombre": "PURO BEBE PERRO AMIGURIMI MARRON", "familia": "ACCESORIOS BEBE", "subfam": "AMIGURUMI", "proveedor": "PURO BEBE", "precio": 20000, "precio_efectivo": 18797, "stock": 0, "kowi": false}, {"cod": "0200010000500001", "nombre": "PURO BEBE PORTACHUPETE CROCHET", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "PURO BEBE", "precio": 10000, "precio_efectivo": 9757, "stock": 0, "kowi": false}, {"cod": "0200010000600004", "nombre": "PURO BEBE SONAJERO ARO CHICO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 2, "kowi": false}, {"cod": "0200010000600006", "nombre": "PURO BEBE SONAJERO ARO GRANDE CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 0, "kowi": false}, {"cod": "0200010000600005", "nombre": "PURO BEBE SONAJERO ARO GRANDE ROSA", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 1, "kowi": false}, {"cod": "0200010000600003", "nombre": "PURO BEBE SONAJERO PIPO CELESTE", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 2, "kowi": false}, {"cod": "0200010000600001", "nombre": "PURO BEBE SONAJERO PIPO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": -3, "kowi": false}, {"cod": "0200010000600002", "nombre": "PURO BEBE SONAJERO PIPO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "SONAJERO", "proveedor": "PURO BEBE", "precio": 17600, "precio_efectivo": 17530, "stock": 0, "kowi": false}, {"cod": "0200010000700003", "nombre": "PURO BEBE TRAPITO DE APEGO AZUL MARINERO", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 2, "kowi": false}, {"cod": "0200010000700001", "nombre": "PURO BEBE TRAPITO DE APEGO NATURAL", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 2, "kowi": false}, {"cod": "0200010000700002", "nombre": "PURO BEBE TRAPITO DE APEGO ROSA", "familia": "ACCESORIOS BEBE", "subfam": "TRAPITO DE APEGO", "proveedor": "PURO BEBE", "precio": 23200, "precio_efectivo": 25978, "stock": 0, "kowi": false}, {"cod": "0200010000500039", "nombre": "RIO - MODELO XL PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 20720, "precio_efectivo": 23900, "stock": 0, "kowi": true}, {"cod": "0200010000500019", "nombre": "TAO - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 21040, "precio_efectivo": 24229, "stock": 0, "kowi": true}, {"cod": "0200010000500020", "nombre": "TAO SIN DIJE - MODELO CLASICO PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 18960, "precio_efectivo": 21939, "stock": 0, "kowi": true}, {"cod": "0200010000500032", "nombre": "ZURI - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 25440, "precio_efectivo": 30331, "stock": 0, "kowi": true}, {"cod": "0200010000500034", "nombre": "ZURI NAME SILICONA - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 27200, "precio_efectivo": 31122, "stock": 0, "kowi": true}, {"cod": "0200010000500033", "nombre": "ZURI NAME WOOD - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 24800, "precio_efectivo": 28929, "stock": 0, "kowi": true}, {"cod": "0200010000500035", "nombre": "ZURI NEW BORN - MODELO SILICONA 4 PORTACHUPETE", "familia": "ACCESORIOS BEBE", "subfam": "PORTACHUPETE", "proveedor": "KOWI", "precio": 22000, "precio_efectivo": 31593, "stock": 0, "kowi": true}];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let items  = [];
+let selP   = null;
+let met    = 'TR';
+let quien  = 'TC';
+let ventas = [];
+
+// Load from storage
+try { ventas = JSON.parse(localStorage.getItem('kowi_ventas')||'[]'); } catch(e){ ventas=[]; }
+
+const fmt = n => '$ ' + Math.round(n).toLocaleString('es-AR');
+
+// ── INIT: populate select ─────────────────────────────────────────────────
+(function initSelect(){
+  const sel = document.getElementById('prod-sel');
+  // Group: KOWI first, then alphabetical
+  const kowi  = PRODS.filter(p=>p.kowi).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const otros = PRODS.filter(p=>!p.kowi).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+
+  const grp1 = document.createElement('optgroup');
+  grp1.label = '✨ KOWI (producción propia)';
+  kowi.forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.cod; o.textContent=p.nombre+' — '+fmt(p.precio);
+    grp1.appendChild(o);
+  });
+
+  const grp2 = document.createElement('optgroup');
+  grp2.label = '🏪 Reventa';
+  otros.forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.cod; o.textContent=p.nombre+' — '+fmt(p.precio);
+    grp2.appendChild(o);
+  });
+
+  sel.appendChild(grp1);
+  sel.appendChild(grp2);
+})();
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function goTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('on',el.dataset.t===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+t).classList.add('on');
+  if(t==='hist') renderHist();
+  if(t==='sum')  renderSum();
+}
+
+// ── PRODUCT SELECT ────────────────────────────────────────────────────────
+function onProdSel(cod){
+  if(!cod){ clearSel(); return; }
+  selP = PRODS.find(p=>p.cod===cod);
+  document.getElementById('sel-name').textContent  = selP.nombre;
+  document.getElementById('sel-price').textContent = fmt(selP.precio);
+  document.getElementById('sel-prod').classList.add('show');
+  document.getElementById('btn-add').disabled = false;
+}
+
+function clearSel(){
+  selP = null;
+  document.getElementById('prod-sel').value = '';
+  document.getElementById('sel-prod').classList.remove('show');
+  document.getElementById('btn-add').disabled = true;
+}
+
+// ── QTY ───────────────────────────────────────────────────────────────────
+function chgQty(d){
+  const el=document.getElementById('qty');
+  el.value = Math.max(1, Math.min(99, (parseInt(el.value)||1)+d));
+}
+
+// ── ADD ITEM ──────────────────────────────────────────────────────────────
+function addItem(){
+  if(!selP){ toast('⚠️ Seleccioná un producto'); return; }
+  const qty = parseInt(document.getElementById('qty').value)||1;
+  const idx = items.findIndex(i=>i.cod===selP.cod);
+  if(idx>=0){ items[idx].qty += qty; }
+  else{
+    items.push({
+      cod:selP.cod, nombre:selP.nombre, familia:selP.familia,
+      subfam:selP.subfam, proveedor:selP.proveedor, kowi:selP.kowi,
+      precio:selP.precio, qty
+    });
+  }
+  clearSel();
+  document.getElementById('qty').value = 1;
+  updItems();
+  toast('✅ Producto agregado');
+}
+
+// ── UPDATE ITEMS (solo esta sección, nunca toca cobro ni totals) ──────────
+function updItems(){
+  const hasItems = items.length > 0;
+  const n = items.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('badge').textContent = n===0?'0 productos':(n===1?'1 producto':n+' productos');
+
+  ['items-list','cobro-card','tot-block','btn-save','btn-cancel']
+    .forEach(id=>document.getElementById(id).style.display=hasItems?'block':'none');
+
+  if(!hasItems){ document.getElementById('items-list').innerHTML=''; updTot(); return; }
+
+  const kowi  = items.filter(i=>i.kowi);
+  const otros = items.filter(i=>!i.kowi);
+  let html = '<div class="card"><div class="card-hdr">🛒 Productos en esta venta ('+items.length+')</div><div class="card-body" style="padding:10px 14px">';
+
+  [...kowi.map(i=>itemHTML(i,'✨ ')), ...otros.map(i=>itemHTML(i,''))].forEach(h=>html+=h);
+  html += '</div></div>';
+  document.getElementById('items-list').innerHTML = html;
+  updTot();
+}
+
+function itemHTML(it, prefix){
+  return `<div class="item-row">
+    <div class="ir-info">
+      <div class="ir-name">${prefix}${it.nombre}</div>
+      <div class="ir-sub">${it.subfam||it.familia} · ${it.proveedor}</div>
+      <div class="ir-price">${fmt(it.precio)} × ${it.qty} = <strong>${fmt(it.precio*it.qty)}</strong></div>
+    </div>
+    <button class="ir-del" onclick="delItem('${it.cod}')">🗑</button>
+  </div>`;
+}
+
+function delItem(cod){
+  items = items.filter(i=>i.cod!==cod);
+  updItems();
+}
+
+// ── TOTALS ────────────────────────────────────────────────────────────────
+function updTot(){
+  if(!items.length) return;
+  const sub  = items.reduce((s,i)=>s+i.precio*i.qty, 0);
+  const disc = (parseFloat(document.getElementById('desc').value)||0)/100;
+  const env  = parseFloat(document.getElementById('env').value)||0;
+  const dAmt = Math.round(sub*disc);
+  const tot  = sub - dAmt + env;
+  const n    = items.reduce((s,i)=>s+i.qty, 0);
+
+  document.getElementById('tot-lbl').textContent = 'Subtotal ('+n+' art.)';
+  document.getElementById('tot-sub').textContent = fmt(sub);
+  document.getElementById('tot-tot').textContent = fmt(tot);
+
+  const dr = document.getElementById('tot-disc-r');
+  if(dAmt>0){
+    dr.style.display='flex';
+    document.getElementById('tot-disc-l').textContent = 'Descuento ('+Math.round(disc*100)+'%)';
+    document.getElementById('tot-disc-v').textContent = '− '+fmt(dAmt);
+  } else dr.style.display='none';
+
+  const er = document.getElementById('tot-env-r');
+  if(env>0){
+    er.style.display='flex';
+    document.getElementById('tot-env-v').textContent = fmt(env);
+  } else er.style.display='none';
+}
+
+// ── TOGGLES ───────────────────────────────────────────────────────────────
+function setMet(m){
+  met=m;
+  document.getElementById('t-tr').className='tog'+(m==='TR'?' g':'');
+  document.getElementById('t-ef').className='tog'+(m==='EF'?' o':'');
+}
+function setQ(q){
+  quien=q;
+  document.getElementById('t-tc').className='tog'+(q==='TC'?' b':'');
+  document.getElementById('t-nc').className='tog'+(q==='NC'?' b':'');
+}
+
+// ── GUARDAR ───────────────────────────────────────────────────────────────
+function guardar(){
+  if(!items.length){ toast('⚠️ Agregá al menos un producto'); return; }
+  const sub  = items.reduce((s,i)=>s+i.precio*i.qty, 0);
+  const disc = (parseFloat(document.getElementById('desc').value)||0)/100;
+  const env  = parseFloat(document.getElementById('env').value)||0;
+  const dAmt = Math.round(sub*disc);
+  const tot  = sub - dAmt + env;
+
+  ventas.unshift({
+    id: Date.now(),
+    fecha: new Date().toLocaleDateString('es-AR'),
+    hora:  new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}),
+    items: [...items], sub, discPct:Math.round(disc*100), dAmt, env, tot,
+    met, quien,
+    cli: document.getElementById('cli').value.trim(),
+    obs: document.getElementById('obs').value.trim()
+  });
+  saveVentas();
+  toast('✅ Venta guardada — '+fmt(tot));
+  resetForm();
+}
+
+function saveVentas(){
+  try{ localStorage.setItem('kowi_ventas', JSON.stringify(ventas)); } catch(e){}
+}
+
+function resetForm(){
+  items=[];
+  clearSel();
+  document.getElementById('qty').value=1;
+  document.getElementById('desc').value='';
+  document.getElementById('env').value='';
+  document.getElementById('cli').value='';
+  document.getElementById('obs').value='';
+  met='TR'; setMet('TR');
+  quien='TC'; setQ('TC');
+  updItems();
+}
+
+// ── HISTORIAL ─────────────────────────────────────────────────────────────
+function renderHist(){
+  const el = document.getElementById('hist-list');
+  if(!ventas.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><div style="font-size:15px;font-weight:600;margin-bottom:6px">No hay ventas registradas</div><div style="font-size:13px">Cargá tu primera venta desde "Nueva"</div></div>';
+    return;
+  }
+  el.innerHTML = ventas.map((v,idx)=>`
+    <div class="hi" id="hi-${v.id}">
+      <div class="hi-top">
+        <div class="hi-title">${v.items.length===1?v.items[0].nombre:v.items.length+' productos'}</div>
+        <div class="hi-monto">${fmt(v.tot)}</div>
+      </div>
+      <div class="hi-items">${v.items.map(i=>`${i.kowi?'✨ ':''}${i.nombre} ×${i.qty}`).join('<br>')}</div>
+      <div class="hi-tags">
+        <span class="htag ${v.quien.toLowerCase()}">${v.quien}</span>
+        <span class="htag ${v.met==='EF'?'ef':''}">${v.met==='TR'?'Transferencia':'Efectivo'}</span>
+        ${v.dAmt>0?`<span class="htag">Desc. ${v.discPct}%</span>`:''}
+        ${v.env>0?`<span class="htag">Envío ${fmt(v.env)}</span>`:''}
+        ${v.cli?`<span class="htag">${v.cli}</span>`:''}
+      </div>
+      <div class="hi-date">${v.fecha} ${v.hora}${v.obs?' · '+v.obs:''}</div>
+      <div class="hi-actions">
+        <button class="btn-del-venta" onclick="confirmarBorrar(${v.id})">🗑 Eliminar esta venta</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+// ── BORRAR VENTA INDIVIDUAL ───────────────────────────────────────────────
+let pendingDelId = null;
+
+function confirmarBorrar(id){
+  const v = ventas.find(x=>x.id===id);
+  if(!v) return;
+  pendingDelId = id;
+  document.getElementById('conf-title').textContent = 'Eliminar venta';
+  document.getElementById('conf-msg').textContent =
+    (v.items.length===1?v.items[0].nombre:v.items.length+' productos')+
+    ' — '+fmt(v.tot)+'\n'+v.fecha+' '+v.hora;
+  document.getElementById('conf-yes').onclick = () => borrarVenta(id);
+  document.getElementById('conf-overlay').classList.add('show');
+}
+
+function borrarVenta(id){
+  ventas = ventas.filter(v=>v.id!==id);
+  saveVentas();
+  closeConf();
+  renderHist();
+  toast('🗑 Venta eliminada');
+}
+
+function closeConf(){
+  document.getElementById('conf-overlay').classList.remove('show');
+  pendingDelId = null;
+}
+
+// Cerrar modal tocando afuera
+document.getElementById('conf-overlay').addEventListener('click', function(e){
+  if(e.target===this) closeConf();
+});
+
+// ── RESUMEN ───────────────────────────────────────────────────────────────
+function renderSum(){
+  const tot = ventas.reduce((s,v)=>s+v.tot, 0);
+  const tc  = ventas.filter(v=>v.quien==='TC').reduce((s,v)=>s+v.tot, 0);
+  const nc  = ventas.filter(v=>v.quien==='NC').reduce((s,v)=>s+v.tot, 0);
+  document.getElementById('s-tot').textContent = fmt(tot);
+  document.getElementById('s-cnt').textContent = ventas.length;
+  document.getElementById('s-tc').textContent  = fmt(tc);
+  document.getElementById('s-nc').textContent  = fmt(nc);
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!ventas.length){ toast('No hay ventas para exportar'); return; }
+  const hdrs=['FECHA','HORA','TIPO','CÓDIGO','PRODUCTO','FAMILIA','SUB FAMILIA',
+              'PROVEEDOR','CANTIDAD','MÉTODO PAGO','PRECIO UNIT','SUBTOTAL ITEM',
+              'DESC %','ENVÍO','TOTAL VENTA','QUIÉN COBRÓ','CLIENTE','OBSERVACIONES'];
+  const rows=[];
+  ventas.forEach(v=>{
+    v.items.forEach((it,i)=>{
+      rows.push([
+        v.fecha,v.hora,'VENTA',it.cod,it.nombre,it.familia,it.subfam,
+        it.proveedor,it.qty,
+        i===0?(v.met==='TR'?'TRANSFERENCIA':'EFECTIVO'):'',
+        it.precio,it.precio*it.qty,
+        i===0?v.discPct+'%':'',
+        i===0?v.env:'',
+        i===0?v.tot:'',
+        i===0?v.quien:'',
+        i===0?v.cli:'',
+        i===0?v.obs:''
+      ]);
+    });
+  });
+  const csv=[hdrs,...rows]
+    .map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(','))
+    .join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ventas_kowi_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast('✅ CSV descargado');
+}
+
+// ── BORRAR TODO ───────────────────────────────────────────────────────────
+function clearAll(){
+  document.getElementById('conf-title').textContent='Borrar todo el historial';
+  document.getElementById('conf-msg').textContent='Esta acción eliminará todas las '+ventas.length+' ventas registradas. No se puede deshacer.';
+  document.getElementById('conf-yes').onclick=()=>{
+    ventas=[]; saveVentas(); closeConf(); renderSum();
+    document.getElementById('hist-list').innerHTML='';
+    toast('Historial borrado');
+    goTab('sum');
+  };
+  document.getElementById('conf-overlay').classList.add('show');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg, ms=2400){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+</script>
+</body>
+</html>
