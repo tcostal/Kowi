@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KOWI · Producción</title>
+<style>
+:root{
+  --brand:#1a237e;--brand2:#283593;--accent:#e65100;--green:#2e7d32;--green-l:#e8f5e9;
+  --red:#c62828;--red-l:#ffebee;--amber:#f57c00;--amber-l:#fff8e1;
+  --bg:#f5f0eb;--card:#fff;--border:#e0d8d0;--sub:#7a6e65;--text:#1a1a1a;
+  --kowi:#b5865a;--kowi-l:#faf5f0;--kowi-d:#8b5e3c;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+     background:var(--bg);color:var(--text);padding-bottom:30px}
+
+/* HEADER */
+.hdr{background:var(--kowi-d);color:#fff;padding:14px 16px 0;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{font-size:20px;font-weight:800;letter-spacing:.5px}
+.logo em{color:#f5deb3;font-style:normal;font-size:13px;font-weight:500;display:block;margin-top:-2px}
+.badge{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600}
+.tabs{display:flex}
+.tab{flex:1;padding:10px 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,.55);
+     cursor:pointer;border-bottom:3px solid transparent;text-align:center}
+.tab.on{color:#fff;border-bottom-color:#f5deb3}
+
+.panel{display:none;padding:14px 12px}.panel.on{display:block}
+
+/* CARDS */
+.card{background:var(--card);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+      margin-bottom:14px;overflow:hidden}
+.card-hdr{background:var(--kowi-d);color:#fff;padding:11px 14px;font-size:13px;font-weight:700}
+.card-body{padding:14px}
+.field{margin-bottom:14px}.field:last-child{margin-bottom:0}
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--sub);
+     text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.req{color:var(--accent)}
+
+/* DATE INPUT */
+input[type=date],input[type=text],input[type=number]{
+  width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:12px;
+  font-size:16px;background:#fff;color:var(--text);outline:none;-webkit-appearance:none}
+input:focus{border-color:var(--kowi)}
+textarea{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:12px;
+         font-size:15px;background:#fff;color:var(--text);outline:none;resize:none;
+         font-family:inherit;line-height:1.5}
+textarea:focus{border-color:var(--kowi)}
+
+/* PICKER */
+.picker-trigger{width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;
+  font-size:16px;background:#fff;color:var(--sub);text-align:left;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between}
+.picker-trigger.filled{color:var(--text);border-color:var(--kowi)}
+.picker-trigger span{flex:1;line-height:1.3}
+
+.picker-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;
+              display:none;align-items:flex-end}
+.picker-modal.open{display:flex}
+.picker-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;
+              max-height:85vh;display:flex;flex-direction:column;height:70vh}
+.picker-hdr{padding:12px 14px;border-bottom:1px solid var(--border);
+            display:flex;align-items:center;gap:10px;flex-shrink:0;background:#fff;
+            border-radius:20px 20px 0 0}
+.picker-srch{flex:1;padding:11px 14px;border:2px solid var(--border);border-radius:10px;
+             font-size:16px;outline:none;-webkit-appearance:none}
+.picker-srch:focus{border-color:var(--kowi)}
+.picker-close{background:none;border:none;font-size:15px;font-weight:700;
+              color:var(--accent);cursor:pointer;padding:8px;white-space:nowrap}
+.picker-list{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.picker-item{padding:14px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;
+             display:flex;align-items:center;justify-content:space-between;gap:8px}
+.picker-item:active{background:#fdf5ee}
+.pi-name{font-size:14px;font-weight:600;line-height:1.3;flex:1}
+.pi-pago{font-size:14px;font-weight:700;color:var(--kowi);white-space:nowrap}
+.picker-empty{padding:40px;text-align:center;color:var(--sub);font-size:14px}
+
+/* SELECTED MODEL */
+.sel-model{background:var(--kowi-l);border:2px solid #d4a876;border-radius:12px;
+           padding:12px 14px;margin-top:10px;display:none}
+.sel-model.show{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sm-info{flex:1}
+.sm-name{font-size:14px;font-weight:700;color:var(--kowi-d);line-height:1.3}
+.sm-pago{font-size:13px;color:var(--sub);margin-top:2px}
+.sm-clear{background:none;border:none;font-size:24px;cursor:pointer;color:#999;padding:0}
+
+/* QTY */
+.qty-row{display:flex;align-items:center}
+.qb{width:52px;height:52px;border:2px solid var(--border);background:#f5f0eb;
+    font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    color:var(--kowi-d);font-weight:700;flex-shrink:0;user-select:none}
+.qb:first-child{border-radius:12px 0 0 12px}
+.qb:last-child{border-radius:0 12px 12px 0}
+.qb:active{background:#ead5be}
+.qn{flex:1;height:52px;border:2px solid var(--border);border-left:none;border-right:none;
+    text-align:center;font-size:24px;font-weight:800;color:var(--kowi-d);
+    background:#fff;outline:none;-webkit-appearance:none;padding:0}
+
+/* ADD BTN */
+.btn-add{width:100%;padding:14px;border:none;border-radius:12px;
+         background:var(--kowi);color:#fff;font-size:16px;font-weight:800;
+         cursor:pointer;margin-top:12px}
+.btn-add:disabled{background:#ccc;cursor:not-allowed}
+.btn-add:active{filter:brightness(.9)}
+
+/* ITEMS */
+.item-row{background:var(--card);border-radius:12px;padding:12px 14px;
+          margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);
+          display:flex;align-items:flex-start;gap:10px;
+          border-left:4px solid var(--kowi)}
+.ir-info{flex:1;min-width:0}
+.ir-name{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:3px;color:var(--kowi-d)}
+.ir-det{font-size:12px;color:var(--sub)}
+.ir-pago{font-size:14px;font-weight:700;color:var(--kowi);margin-top:3px}
+.ir-del{background:none;border:none;font-size:24px;cursor:pointer;color:#ddd;padding:0;flex-shrink:0}
+.ir-del:active{color:var(--red)}
+
+/* TOTAL BLOCK */
+.total-block{background:var(--kowi-d);color:#fff;border-radius:14px;padding:16px;margin-bottom:14px}
+.tot-r{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;opacity:.85}
+.tot-big{font-size:24px;font-weight:900;border-top:1px solid rgba(255,255,255,.3);
+         margin-top:8px;padding-top:10px;opacity:1}
+
+/* BUTTONS */
+.btn-send{width:100%;padding:16px;border:none;border-radius:14px;
+          background:var(--green);color:#fff;font-size:17px;font-weight:800;
+          cursor:pointer;margin-bottom:10px}
+.btn-send:active{filter:brightness(.9)}
+.btn-cancel{width:100%;padding:13px;border:2px solid #ccc;border-radius:12px;
+            background:#fff;color:var(--sub);font-size:14px;font-weight:600;cursor:pointer}
+
+/* HISTORIAL */
+.hi{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;
+    box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:4px solid var(--kowi)}
+.hi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.hi-num{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+.hi-fecha{font-size:11px;color:var(--sub)}
+.hi-total{font-size:17px;font-weight:800;color:var(--kowi);white-space:nowrap}
+.hi-items{font-size:13px;margin-bottom:8px;line-height:1.7}
+.hi-estado{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;
+           border-radius:10px;margin-bottom:8px}
+.hi-estado.pendiente{background:var(--amber-l);color:var(--amber)}
+.hi-estado.entregado{background:var(--green-l);color:var(--green)}
+.hi-estado.pagado{background:#e8eaf6;color:#283593}
+.hi-actions{display:flex;gap:8px;flex-wrap:wrap}
+.hi-btn{flex:1;padding:9px 8px;border-radius:10px;font-size:12px;font-weight:700;
+        cursor:pointer;text-align:center;border:2px solid}
+.hi-btn.entregar{border-color:var(--green);background:#fff;color:var(--green)}
+.hi-btn.pagar{border-color:var(--kowi);background:#fff;color:var(--kowi-d)}
+.hi-btn.del{border-color:var(--red);background:#fff;color:var(--red)}
+.hi-btn:active{filter:brightness(.95)}
+
+/* RESUMEN */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.sc{background:var(--card);border-radius:14px;padding:14px;text-align:center;
+    box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.sc-lbl{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;margin-bottom:5px}
+.sc-val{font-size:22px;font-weight:800}
+.kv{color:var(--kowi)}.gv{color:var(--green)}.bv{color:var(--brand)}
+
+/* CONFIRM */
+.conf-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;
+         display:none;align-items:center;justify-content:center;padding:20px}
+.conf-ov.show{display:flex}
+.conf-box{background:#fff;border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center}
+.conf-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.conf-msg{font-size:14px;color:var(--sub);margin-bottom:20px;line-height:1.5}
+.conf-btns{display:flex;gap:10px}
+.conf-no{flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;
+         background:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.conf-yes{flex:1;padding:12px;border:none;border-radius:12px;
+          background:var(--red);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+
+.empty{text-align:center;padding:50px 20px;color:var(--sub)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+       background:#222;color:#fff;padding:12px 24px;border-radius:24px;
+       font-size:14px;font-weight:500;z-index:9998;opacity:0;pointer-events:none;
+       transition:opacity .25s;white-space:nowrap;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">KOWI LITTLES <em>Órdenes de producción</em></div>
+    <div class="badge" id="badge">0 modelos</div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" data-t="nueva" onclick="goTab('nueva')">✏️ Nueva orden</div>
+    <div class="tab" data-t="hist"  onclick="goTab('hist')">📋 Historial</div>
+    <div class="tab" data-t="sum"   onclick="goTab('sum')">📊 Resumen</div>
+  </div>
+</div>
+
+<!-- NUEVA ORDEN -->
+<div class="panel on" id="p-nueva">
+
+  <div class="card">
+    <div class="card-hdr">📅 Datos de la orden</div>
+    <div class="card-body">
+      <div class="field">
+        <label class="lbl">Número de orden</label>
+        <input type="text" id="num-orden" placeholder="Ej: ORD-001" readonly
+               style="background:#f5f5f5;color:var(--sub)">
+      </div>
+      <div class="field">
+        <label class="lbl">Fecha de entrega <span class="req">*</span></label>
+        <input type="date" id="fecha-entrega">
+      </div>
+      <div class="field">
+        <label class="lbl">Observaciones generales</label>
+        <textarea id="obs-general" rows="2"
+                  placeholder="Ej: Llevar insumos el lunes, colores específicos, etc."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">🧵 Agregar modelo</div>
+    <div class="card-body">
+      <div class="field">
+        <label class="lbl">Modelo <span class="req">*</span></label>
+        <button class="picker-trigger" id="picker-trigger" onclick="openPicker()">
+          <span id="picker-trigger-txt">Tocá para elegir un modelo...</span>
+          <span>▼</span>
+        </button>
+        <div class="sel-model" id="sel-model">
+          <div class="sm-info">
+            <div class="sm-name" id="sel-nombre"></div>
+            <div class="sm-pago" id="sel-pago-info"></div>
+          </div>
+          <button class="sm-clear" onclick="clearSel()">×</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Cantidad</label>
+        <div class="qty-row">
+          <button class="qb" onclick="chgQty(-1)">−</button>
+          <input class="qn" id="qty" type="number" inputmode="numeric" value="1" min="1" max="99">
+          <button class="qb" onclick="chgQty(1)">+</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Observaciones del modelo <span style="text-transform:none;font-weight:400;font-size:11px">(colores, nombre, dije, etc.)</span></label>
+        <textarea id="obs-modelo" rows="2" placeholder="Ej: Nombre SOFIA, esferas rosadas, broche de madera"></textarea>
+      </div>
+
+      <button class="btn-add" id="btn-add" onclick="addItem()" disabled>＋ Agregar a la orden</button>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div id="items-list" style="display:none"></div>
+
+  <!-- Total -->
+  <div class="total-block" id="tot-block" style="display:none">
+    <div class="tot-r"><span id="tot-lbl">Subtotal</span><span id="tot-items"></span></div>
+    <div class="tot-big" style="display:flex;justify-content:space-between">
+      <span>TOTAL A PAGAR</span><span id="tot-total"></span>
+    </div>
+  </div>
+
+  <button class="btn-send" id="btn-send" style="display:none" onclick="guardarOrden()">
+    📤 Guardar y compartir por WhatsApp
+  </button>
+  <button class="btn-cancel" id="btn-cancel" style="display:none" onclick="resetForm()">
+    Cancelar
+  </button>
+</div>
+
+<!-- HISTORIAL -->
+<div class="panel" id="p-hist"><div id="hist-list"></div></div>
+
+<!-- RESUMEN -->
+<div class="panel" id="p-sum">
+  <div class="sg">
+    <div class="sc"><div class="sc-lbl">Órdenes enviadas</div><div class="sc-val bv" id="s-ord">0</div></div>
+    <div class="sc"><div class="sc-lbl">Total producido</div><div class="sc-val kv" id="s-units">0 uds.</div></div>
+    <div class="sc"><div class="sc-lbl">Total pagado</div><div class="sc-val gv" id="s-pag">$ 0</div></div>
+    <div class="sc"><div class="sc-lbl">Pendiente de pago</div><div class="sc-val" style="color:var(--amber)" id="s-pend">$ 0</div></div>
+  </div>
+</div>
+
+<!-- PICKER -->
+<div class="picker-modal" id="picker-modal" onclick="if(event.target===this)closePicker()">
+  <div class="picker-sheet">
+    <div class="picker-hdr">
+      <input class="picker-srch" id="picker-srch" type="text"
+             placeholder="Buscar modelo..." autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" inputmode="search"
+             oninput="filterPicker(this.value)">
+      <button class="picker-close" onclick="closePicker()">Cerrar</button>
+    </div>
+    <div class="picker-list" id="picker-list"></div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="conf-ov" id="conf-ov" onclick="if(event.target===this)closeConf()">
+  <div class="conf-box">
+    <div class="conf-title" id="conf-title"></div>
+    <div class="conf-msg" id="conf-msg"></div>
+    <div class="conf-btns">
+      <button class="conf-no" onclick="closeConf()">Cancelar</button>
+      <button class="conf-yes" id="conf-yes">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MODELS = [{"nombre": "KOWI 15", "pago": 2500}, {"nombre": "KOWI 16", "pago": 2500}, {"nombre": "KOWI 16 LABRADAS", "pago": 2500}, {"nombre": "KOWI 17", "pago": 2500}, {"nombre": "KOWI 18", "pago": 2500}, {"nombre": "KOWI BAMBU - MODELO SILICONA PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI BENI - MODELO SILICONA 5 PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI CANDY", "pago": 2500}, {"nombre": "KOWI COCO - MODELO SILICONA PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI ESTRELLA - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI LIA - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI LIA SIN DIJE - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI LLAVERO 1", "pago": 850}, {"nombre": "KOWI LLAVERO 2", "pago": 850}, {"nombre": "KOWI LLAVERO 3", "pago": 850}, {"nombre": "KOWI LUCKY", "pago": 2500}, {"nombre": "KOWI MADERA 1", "pago": 2500}, {"nombre": "KOWI MADERA 2", "pago": 2500}, {"nombre": "KOWI MADERA 3", "pago": 2500}, {"nombre": "KOWI MARGARITAS", "pago": 2500}, {"nombre": "KOWI MARGOT NAME - MODELO SILICONA 3 PORTACHUPETE", "pago": 4167}, {"nombre": "KOWI MARGOT WHITE - MODELO SILICONA 3 PORTACHUPETE", "pago": 5000}, {"nombre": "KOWI MARGOT WOOD - MODELO SILICONA 3 PORTACHUPETE", "pago": 5000}, {"nombre": "KOWI MIU - MODELO SILICONA PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI NATURE - MODELO SILICONA 2 PORTACHUPETE", "pago": 3334}, {"nombre": "KOWI NATURE FREE - MODELO SILICONA 2 PORTACHUPETE", "pago": 4167}, {"nombre": "KOWI NATURE FREE SHORT - MODELO SILICONA 2 PORTACHUPETE", "pago": 4167}, {"nombre": "KOWI NATURE SILICONA - MODELO SILICONA 2 PORTACHUPETE", "pago": 3334}, {"nombre": "KOWI NOA - MODELO XL PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI NOA - NEW VERSION", "pago": 2500}, {"nombre": "KOWI NUBE - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI ONA - MODELO SILICONA 5 PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI PASTELES", "pago": 2500}, {"nombre": "KOWI PETIT", "pago": 2500}, {"nombre": "KOWI PURE BABY", "pago": 2500}, {"nombre": "KOWI PURE BABY NAME", "pago": 2500}, {"nombre": "KOWI RAINBOW - MODELO SILICONA 5 PORTACHUPETE", "pago": 3300}, {"nombre": "KOWI RIO - MODELO XL PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI RIO - NEW VERSION", "pago": 2500}, {"nombre": "KOWI ROSE FLOWERS", "pago": 1250}, {"nombre": "KOWI TAO - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI TAO SIN DIJE - MODELO CLASICO PORTACHUPETE", "pago": 2500}, {"nombre": "KOWI WHITE AND", "pago": 2500}, {"nombre": "KOWI WHITE AND FLOWERS", "pago": 2500}, {"nombre": "KOWI ZURI - MODELO SILICONA 4 PORTACHUPETE", "pago": 4167}, {"nombre": "KOWI ZURI NAME SILICONA - MODELO SILICONA 4 PORTACHUPETE", "pago": 3334}, {"nombre": "KOWI ZURI NAME WOOD - MODELO SILICONA 4 PORTACHUPETE", "pago": 3334}, {"nombre": "KOWI ZURI NEW BORN - MODELO SILICONA 4 PORTACHUPETE", "pago": 4167}];
+
+let items   = [];
+let selM    = null;
+let ordenes = [];
+try{ ordenes=JSON.parse(localStorage.getItem('kowi_ordenes')||'[]'); }catch(e){ ordenes=[]; }
+
+const fmt = n => '$ ' + Math.round(n).toLocaleString('es-AR');
+
+// Auto set order number
+function nextOrdNum(){
+  const last = ordenes.length ? parseInt(ordenes[0].num.replace('ORD-',''))||0 : 0;
+  return 'ORD-' + String(last+1).padStart(3,'0');
+}
+document.getElementById('num-orden').value = nextOrdNum();
+
+// Set default date = today + 7 days
+const d = new Date(); d.setDate(d.getDate()+7);
+document.getElementById('fecha-entrega').value = d.toISOString().slice(0,10);
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function goTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('on',el.dataset.t===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+t).classList.add('on');
+  if(t==='hist') renderHist();
+  if(t==='sum')  renderSum();
+}
+
+// ── PICKER ────────────────────────────────────────────────────────────────
+function openPicker(){
+  document.getElementById('picker-modal').classList.add('open');
+  document.getElementById('picker-srch').value='';
+  renderPickerList(MODELS);
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('picker-srch').focus(),150);
+}
+function closePicker(){
+  document.getElementById('picker-modal').classList.remove('open');
+  document.getElementById('picker-srch').blur();
+  document.body.style.overflow='';
+}
+function filterPicker(q){
+  const list=q?MODELS.filter(m=>m.nombre.toLowerCase().includes(q.toLowerCase())):MODELS;
+  renderPickerList(list);
+}
+function renderPickerList(list){
+  const el=document.getElementById('picker-list');
+  if(!list.length){ el.innerHTML='<div class="picker-empty">Sin resultados</div>'; return; }
+  el.innerHTML=list.map(m=>
+    '<div class="picker-item" data-idx="'+MODELS.indexOf(m)+'">'+
+    '<div class="pi-name">'+m.nombre+'</div>'+
+    '<div class="pi-pago">'+fmt(m.pago)+' c/u</div></div>'
+  ).join('');
+}
+document.getElementById('picker-list').addEventListener('click',function(e){
+  const item=e.target.closest('.picker-item');
+  if(item){ pickModel(parseInt(item.dataset.idx)); }
+});
+function pickModel(idx){
+  selM=MODELS[idx];
+  closePicker();
+  document.getElementById('picker-trigger').classList.add('filled');
+  document.getElementById('picker-trigger-txt').textContent=selM.nombre;
+  document.getElementById('sel-nombre').textContent=selM.nombre;
+  document.getElementById('sel-pago-info').textContent='Pago: '+fmt(selM.pago)+' por unidad';
+  document.getElementById('sel-model').classList.add('show');
+  document.getElementById('btn-add').disabled=false;
+}
+function clearSel(){
+  selM=null;
+  document.getElementById('picker-trigger').classList.remove('filled');
+  document.getElementById('picker-trigger-txt').textContent='Tocá para elegir un modelo...';
+  document.getElementById('sel-model').classList.remove('show');
+  document.getElementById('btn-add').disabled=true;
+}
+
+// ── QTY ───────────────────────────────────────────────────────────────────
+function chgQty(d){
+  const el=document.getElementById('qty');
+  el.value=Math.max(1,Math.min(99,(parseInt(el.value)||1)+d));
+}
+
+// ── ADD ITEM ──────────────────────────────────────────────────────────────
+function addItem(){
+  if(!selM){ toast('⚠️ Elegí un modelo'); return; }
+  const qty=parseInt(document.getElementById('qty').value)||1;
+  const obs=document.getElementById('obs-modelo').value.trim();
+  // Each entry is separate (same model can appear multiple times with diff obs)
+  items.push({nombre:selM.nombre,pago:selM.pago,qty,obs,subtotal:selM.pago*qty});
+  clearSel();
+  document.getElementById('qty').value=1;
+  document.getElementById('obs-modelo').value='';
+  updItems();
+  toast('✅ Modelo agregado');
+}
+
+// ── UPDATE ITEMS ──────────────────────────────────────────────────────────
+function updItems(){
+  const has=items.length>0;
+  const total=items.reduce((s,i)=>s+i.subtotal,0);
+  const totalUnits=items.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('badge').textContent=totalUnits===0?'0 modelos':totalUnits+' unidades';
+  ['items-list','tot-block','btn-send','btn-cancel']
+    .forEach(id=>document.getElementById(id).style.display=has?'block':'none');
+  if(!has){ document.getElementById('items-list').innerHTML=''; return; }
+
+  let html='<div class="card"><div class="card-hdr">🧵 Modelos en esta orden ('+items.length+')</div><div class="card-body" style="padding:10px 14px">';
+  items.forEach((it,idx)=>{
+    html+=`<div class="item-row">
+      <div class="ir-info">
+        <div class="ir-name">${it.nombre}</div>
+        <div class="ir-det">Cantidad: ${it.qty}${it.obs?' · '+it.obs:''}</div>
+        <div class="ir-pago">${fmt(it.pago)} × ${it.qty} = <strong>${fmt(it.subtotal)}</strong></div>
+      </div>
+      <button class="ir-del" onclick="delItem(${idx})">🗑</button>
+    </div>`;
+  });
+  html+='</div></div>';
+  document.getElementById('items-list').innerHTML=html;
+
+  document.getElementById('tot-lbl').textContent=totalUnits+' unidades · '+items.length+' modelos';
+  document.getElementById('tot-items').textContent='';
+  document.getElementById('tot-total').textContent=fmt(total);
+}
+function delItem(idx){ items.splice(idx,1); updItems(); }
+
+// ── GUARDAR Y COMPARTIR ───────────────────────────────────────────────────
+function guardarOrden(){
+  if(!items.length){ toast('⚠️ Agregá al menos un modelo'); return; }
+  const num=document.getElementById('num-orden').value;
+  const fecha=document.getElementById('fecha-entrega').value;
+  const obsGen=document.getElementById('obs-general').value.trim();
+  const total=items.reduce((s,i)=>s+i.subtotal,0);
+  const totalUnits=items.reduce((s,i)=>s+i.qty,0);
+  const fechaStr=fecha?new Date(fecha+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):'Sin fecha';
+
+  const orden={
+    id:Date.now(),num,fecha,fechaStr,obsGen,
+    items:[...items],total,totalUnits,
+    estado:'pendiente',  // pendiente → entregado → pagado
+    fechaCreacion:new Date().toLocaleDateString('es-AR')
+  };
+  ordenes.unshift(orden);
+  saveOrdenes();
+
+  // Armar mensaje para WhatsApp (sin precio de venta, solo lo que necesita fabricar)
+  let msg='📋 *ORDEN DE PRODUCCIÓN '+num+'*\n';
+  msg+='📅 Fecha de entrega: *'+fechaStr+'*\n\n';
+  msg+='*MODELOS A FABRICAR:*\n';
+  items.forEach((it,i)=>{
+    msg+=`${i+1}. *${it.nombre}*\n`;
+    msg+=`   Cantidad: ${it.qty}\n`;
+    if(it.obs) msg+=`   📝 ${it.obs}\n`;
+    msg+='\n';
+  });
+  msg+='📦 *Total: '+totalUnits+' unidades*\n';
+  if(obsGen) msg+='\n📌 *Observaciones:* '+obsGen;
+
+  if(navigator.share){
+    navigator.share({title:'Orden KOWI '+num, text:msg}).catch(()=>{});
+  } else {
+    const wa=encodeURIComponent(msg);
+    window.open('https://wa.me/?text='+wa,'_blank');
+  }
+
+  toast('✅ Orden guardada');
+  resetForm();
+}
+
+function saveOrdenes(){ try{ localStorage.setItem('kowi_ordenes',JSON.stringify(ordenes)); }catch(e){} }
+
+function resetForm(){
+  items=[]; clearSel();
+  document.getElementById('qty').value=1;
+  document.getElementById('obs-modelo').value='';
+  document.getElementById('obs-general').value='';
+  document.getElementById('num-orden').value=nextOrdNum();
+  const d=new Date(); d.setDate(d.getDate()+7);
+  document.getElementById('fecha-entrega').value=d.toISOString().slice(0,10);
+  updItems();
+}
+
+// ── HISTORIAL ─────────────────────────────────────────────────────────────
+function renderHist(){
+  const el=document.getElementById('hist-list');
+  if(!ordenes.length){ el.innerHTML='<div class="empty"><div style="font-size:44px;margin-bottom:10px">📋</div>No hay órdenes registradas</div>'; return; }
+  el.innerHTML=ordenes.map(o=>{
+    const estadoLabel=o.estado==='pendiente'?'⏳ Pendiente de entrega':o.estado==='entregado'?'📦 Entregado — pendiente de pago':'✅ Pagado';
+    return `<div class="hi">
+      <div class="hi-top">
+        <div>
+          <div class="hi-num">${o.num}</div>
+          <div class="hi-fecha">Entrega: ${o.fechaStr} · Creada: ${o.fechaCreacion}</div>
+        </div>
+        <div class="hi-total">${fmt(o.total)}</div>
+      </div>
+      <div class="hi-estado ${o.estado}">${estadoLabel}</div>
+      <div class="hi-items">${o.items.map(i=>
+        `<strong>${i.nombre}</strong> ×${i.qty}${i.obs?' <span style="color:var(--sub);font-size:12px">· '+i.obs+'</span>':''}`
+      ).join('<br>')}</div>
+      ${o.obsGen?`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">📌 ${o.obsGen}</div>`:''}
+      <div class="hi-actions">
+        ${o.estado==='pendiente'?`<button class="hi-btn entregar" onclick="cambiarEstado(${o.id},'entregado')">📦 Marcar entregado</button>`:''}
+        ${o.estado==='entregado'?`<button class="hi-btn pagar" onclick="cambiarEstado(${o.id},'pagado')">✅ Marcar pagado (${fmt(o.total)})</button>`:''}
+        <button class="hi-btn" style="border-color:var(--kowi);color:var(--kowi-d)" onclick="reenviarWA(${o.id})">📤 Reenviar WA</button>
+        <button class="hi-btn del" onclick="confirmAct('Eliminar orden','${o.num} — ${fmt(o.total)}',()=>borrarOrden(${o.id}))">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cambiarEstado(id,estado){
+  const o=ordenes.find(x=>x.id===id);
+  if(!o) return;
+  o.estado=estado;
+  saveOrdenes(); renderHist(); renderSum();
+  toast(estado==='entregado'?'📦 Marcado como entregado':'✅ Marcado como pagado');
+}
+
+function reenviarWA(id){
+  const o=ordenes.find(x=>x.id===id);
+  if(!o) return;
+  let msg='📋 *ORDEN DE PRODUCCIÓN '+o.num+'*\n';
+  msg+='📅 Fecha de entrega: *'+o.fechaStr+'*\n\n';
+  msg+='*MODELOS A FABRICAR:*\n';
+  o.items.forEach((it,i)=>{
+    msg+=`${i+1}. *${it.nombre}*\n   Cantidad: ${it.qty}\n`;
+    if(it.obs) msg+=`   📝 ${it.obs}\n`;
+    msg+='\n';
+  });
+  msg+='📦 *Total: '+o.totalUnits+' unidades*\n';
+  if(o.obsGen) msg+='\n📌 '+o.obsGen;
+  const wa=encodeURIComponent(msg);
+  window.open('https://wa.me/?text='+wa,'_blank');
+}
+
+function borrarOrden(id){ ordenes=ordenes.filter(o=>o.id!==id); saveOrdenes(); closeConf(); renderHist(); renderSum(); toast('🗑 Orden eliminada'); }
+
+// ── RESUMEN ───────────────────────────────────────────────────────────────
+function renderSum(){
+  const pagadas=ordenes.filter(o=>o.estado==='pagado').reduce((s,o)=>s+o.total,0);
+  const pendiente=ordenes.filter(o=>o.estado!=='pagado').reduce((s,o)=>s+o.total,0);
+  const totalUnits=ordenes.reduce((s,o)=>s+o.totalUnits,0);
+  document.getElementById('s-ord').textContent=ordenes.length;
+  document.getElementById('s-units').textContent=totalUnits+' uds.';
+  document.getElementById('s-pag').textContent=fmt(pagadas);
+  document.getElementById('s-pend').textContent=fmt(pendiente);
+}
+
+// ── CONFIRM ───────────────────────────────────────────────────────────────
+function confirmAct(title,msg,fn){
+  document.getElementById('conf-title').textContent=title;
+  document.getElementById('conf-msg').textContent=msg;
+  document.getElementById('conf-yes').onclick=fn;
+  document.getElementById('conf-ov').classList.add('show');
+}
+function closeConf(){ document.getElementById('conf-ov').classList.remove('show'); }
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg,ms=2400){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+</script>
+</body>
+</html>
